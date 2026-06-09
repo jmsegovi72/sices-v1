@@ -1,0 +1,257 @@
+export const ACADEMIC_DISCIPLINES = [
+  'Biología',
+  'Español',
+  'Física',
+  'Formación Ética y Ciudadana',
+  'Geografía',
+  'Historia',
+  'Inglés',
+  'Matemáticas',
+  'Química',
+  'Posgrado',
+  'TC',
+  'Telesecundaria',
+  'NA',
+] as const;
+
+export const EDUCATION_LEVELS = [
+  'Doctorado',
+  'Licenciatura universitaria',
+  'Maestría',
+  'Menor a licenciatura',
+  'Normal básica',
+  'Normal plan 84 o superior',
+  'Otro',
+  'Licenciatura',
+  'No Aplica',
+] as const;
+
+export const MODALITIES = [
+  'Escolarizada',
+  'Mixta',
+  'No escolarizada',
+  'Virtual',
+  'Abierta',
+  'Semipresencial',
+  'Dual',
+] as const;
+
+export class AcademicFieldsDto {
+  @IsOptional()
+  @IsIn(ACADEMIC_DISCIPLINES, {
+    message: `El campo |academicDiscipline| debe ser uno de los valores permitidos.`,
+  })
+  academicDiscipline?: string;
+
+  @IsOptional()
+  @IsIn(EDUCATION_LEVELS, {
+    message: `El campo |educationLevel| debe ser uno de los valores permitidos.`,
+  })
+  educationLevel?: string;
+
+  @IsOptional()
+  @IsIn(MODALITIES, {
+    message: `El campo |modality| debe ser uno de los valores permitidos.`,
+  })
+  modality?: string;
+  // 🔹 Plan de estudios (ej: 2018, 2022)
+  @OptionalNonEmptyString({ fieldName: 'Plan de estudios', max: 4 })
+  studyPlan?: string;
+  @OptionalNonEmptyString({ fieldName: 'Matrícula' })
+  studentCode?: string;anti
+}
+export class BaseQueryDto extends PaginationDto {
+  @OptionalNonEmptyString({ fieldName: 'searchTerm' })
+  searchTerm?: string;
+}
+export class PaginationDto {
+  @OptionalNonNegativeInt({
+    fieldName: 'Límite',
+    min: 0, // 0 = sin límite (intencional)
+  })
+  limit?: number;
+
+  @OptionalNonNegativeInt({
+    fieldName: 'Página',
+    min: 1,
+  })
+  page?: number;
+
+  @IsOptional()
+  @Transform(({ value }) => {
+    if (value === 'true' || value === true) return true;
+    if (value === 'false' || value === false) return false;
+    return undefined;
+  })
+  @IsBoolean({ message: 'El campo |activo| debe ser verdadero o falso.' })
+  active?: boolean;
+
+  // --- Getters seguros ---
+
+  get safeLimit(): number {
+    return this.limit ?? (Number(process.env.DEFAULT_PAGINATION_LIMIT) || 10);
+  }
+
+  get safePage(): number {
+    return this.page ?? 1;
+  }
+
+  get offset(): number {
+    return this.safeLimit > 0 ? (this.safePage - 1) * this.safeLimit : 0;
+  }
+}
+export class QueryLocationDto {
+  // 🔹 por nombre
+  @OptionalNonEmptyString({ fieldName: 'Nombre del estado' })
+  stateName?: string;
+
+  @OptionalNonEmptyString({ fieldName: 'Nombre del municipio' })
+  municipalityName?: string;
+
+  // 🔹 por ID (snake_case en API)
+  @OptionalPositiveInt({ fieldName: 'Id Estado' })
+  state_id?: number;
+
+  @OptionalPositiveInt({ fieldName: 'Id Municipio' })
+  municipality_id?: number;
+  // 🔹 ubicación postal
+  @OptionalNonEmptyString({ fieldName: 'Código postal', max: 5 })
+  zipCode?: string;
+}
+export class QueryPersonalInfoDto {
+  @OptionalNonEmptyString({
+    fieldName: 'Nombre',
+  })
+  firstName?: string;
+
+  @OptionalNonEmptyString({
+    fieldName: 'Apellido paterno',
+  })
+  firstLastName?: string;
+
+  @OptionalNonEmptyString({
+    fieldName: 'Apellido materno',
+  })
+  secondLastName?: string;
+
+  @IsOptional()
+  @IsCURP('CURP')
+  curp?: string;
+
+  @OptionalNonEmptyString({ fieldName: 'Nombre completo', max: 97 })
+  fullName?: string;
+}
+export class QueryUserDto extends IntersectionType(
+  QueryPersonalInfoDto, // Si este trae CURP, simplemente no la mapearemos en el WHERE
+  BaseQueryDto,
+) {
+  @IsOptional()
+  @IsBoolean()
+  @Transform(({ value }) => value === 'true' || value === true)
+  isActive?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  @Transform(({ value }) => value === 'true' || value === true)
+  isFirstLogin?: boolean;
+
+  @IsOptional()
+  @IsString()
+  roleName?: string;
+
+  @IsOptional()
+  @IsString()
+  userTypeName?: string;
+}
+
+export class SearchDto {
+  @IsOptional()
+  @Transform(({ value }) => {
+    if (!value) return undefined;
+
+    // 🔹 1. Limpieza inicial
+    const trimmed = String(value).trim();
+
+    // =========================================================
+    // 🔹 2. Prefijos explícitos (solo campos ambiguos)
+    // =========================================================
+
+    // 📘 Matrícula escolar
+    if (/^sc[:\-]?/i.test(trimmed)) {
+      const studentCode = trimmed.replace(/^sc[:\-]?/i, '');
+
+      if (!isValidStudentCode(studentCode)) {
+        throw new BadRequestException(
+          `La matrícula |${studentCode}| no cumple el formato oficial.`,
+        );
+      }
+
+      return {
+        type: 'studentCode',
+        value: studentCode,
+      };
+    }
+
+    // =========================================================
+    // 🔹 3. Detección automática inteligente
+    // =========================================================
+
+    if (isValidIntegerId(trimmed)) {
+      return {
+        type: 'id',
+        value: Number(trimmed),
+      };
+    }
+
+    if (isValidEmail(trimmed)) {
+      return {
+        type: 'email',
+        value: trimmed.toLowerCase(),
+      };
+    }
+
+    if (isValidCurp(trimmed)) {
+      return {
+        type: 'curp',
+        value: trimmed.toUpperCase(),
+      };
+    }
+
+    if (isValidFolio(trimmed)) {
+      return {
+        type: 'folio',
+        value: trimmed.toUpperCase(),
+      };
+    }
+
+    if (isValidClassCode(trimmed)) {
+      return {
+        type: 'class',
+        value: trimmed.toUpperCase(),
+      };
+    }
+
+    if (isValidSemiannualPeriod(trimmed)) {
+      return {
+        type: 'semiannualPeriod',
+        value: trimmed.toUpperCase(),
+      };
+    }
+    if (isValidCct(trimmed)) {
+      return {
+        type: 'cct',
+        value: trimmed.toUpperCase(),
+      };
+    }
+    // =========================================================
+    // 🔹 4. Fallback búsqueda textual
+    // =========================================================
+
+    return {
+      type: 'text',
+      value: trimmed,
+    };
+  })
+  search?: { type: SearchType | 'text'; value: any };
+}
+

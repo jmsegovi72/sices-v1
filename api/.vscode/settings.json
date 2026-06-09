@@ -1,0 +1,191 @@
+{
+  "editor.fontSize": 16,
+  "editor.wordWrap": "on",
+  "editor.tabSize": 2,
+  "editor.insertSpaces": true,
+  "dotenv.enableAutocloaking": false,
+  "biome.lsp.bin": "node_modules/@biomejs/cli-win32-x64/biome.exe",
+  "biome.lspBin": "node_modules/@biomejs/cli-win32-x64/biome.exe",
+  "cSpell.words": [
+    "ÁÉÍÓÚÜÑáéíóúüñ",
+    "atomicidad",
+    "autoincrement",
+    "capturista",
+    "Capturista",
+    "curp",
+    "datasource",
+    "desestructuración",
+    "Destructura",
+    "Destructurar",
+    "dinámicamente",
+    "dtos",
+    "Dtos",
+    "encriptación",
+    "FIELDMAP",
+    "fileload",
+    "fullname",
+    "hashea",
+    "hasheada",
+    "hasheamos",
+    "Hasheamos",
+    "homoclave",
+    "impórtalo",
+    "inegi",
+    "Instantiator",
+    "manejador",
+    "mysql",
+    "nestjs",
+    "nodenext",
+    "originalname",
+    "paginación",
+    "pasarle",
+    "qwik",
+    "reasignación",
+    "reassigner",
+    "refactorizados",
+    "Resetear",
+    "sices",
+    "SICES",
+    "sicoes",
+    "Telesecundaria",
+    "tinyint",
+    "tipado",
+    "Tipamos",
+    "uploadfile",
+    "zipcode",
+    "Zipcode"
+  ],
+  "editor.codeActionsOnSave": {
+    "source.organizeImports.biome": "explicit",
+    "source.fixAll.biome": "explicit"
+  },
+
+  "material-icon-theme.activeIconPack": "nest",
+  "postman.settings.dotenv-detection-notification-visibility": false,
+
+  "tsimporter.filesToScan": ["**/*.ts", "**/*.tsx", "**/*.vue"],
+
+  "exportall.config.namedExports": true,
+  "exportall.config.includeFoldersToExport": true,
+  "better-comments.tags": [
+    {
+      "tag": "!",
+      "color": "#FF2D00",
+      "strikethrough": false,
+      "underline": false,
+      "backgroundColor": "transparent",
+      "bold": false,
+      "italic": false
+    },
+    {
+      "tag": "?",
+      "color": "#3498DB",
+      "strikethrough": false,
+      "underline": false,
+      "backgroundColor": "transparent",
+      "bold": false,
+      "italic": false
+    },
+    {
+      "tag": "//",
+      "color": "#474747",
+      "strikethrough": true,
+      "underline": false,
+      "backgroundColor": "transparent",
+      "bold": false,
+      "italic": false
+    },
+    {
+      "tag": "todo",
+      "color": "#FF8C00",
+      "strikethrough": false,
+      "underline": false,
+      "backgroundColor": "transparent",
+      "bold": false,
+      "italic": false
+    },
+    {
+      "tag": "*",
+      "color": "#98C379",
+      "strikethrough": false,
+      "underline": false,
+      "backgroundColor": "transparent",
+      "bold": false,
+      "italic": false
+    }
+  ],
+  "exportall.config.folderListener": [
+    "/src/common/helpers/http-request-functions",
+    "/src/common/helpers",
+    "/src/common/helpers/prisma",
+    "/src/common/types",
+    "/src/auth/decorators",
+    "/src/auth/interfaces",
+    "/src/common/constants",
+    "/src/common/interfaces",
+    "/src/common/services",
+    "/src/common/prisma",
+    "/src/common",
+    "/src/users/dto",
+    "/src/persons/dto",
+    "/src/common/interceptors",
+    "/src/addresses/dto",
+    "/src/scd/dto",
+    "/src/students/dto",
+    "/src/common/decorators",
+    "/src/common/dtos",
+    "/src/classes/dto",
+    "/src/student_enrollments/dto",
+    "/src/student_enrollments/utils",
+    "/src/student_dropouts/dto",
+    "/src/config",
+    "/src/auth/dto",
+    "/src/prisma",
+    "/src/auth",
+    "/src/common/utils",
+    "/src/common/pipes",
+    "/src/common/decorators/validators",
+    "/src/auth/guards",
+    "/src/zip-codes/dto",
+    "/src/schools-of-origin/dto",
+    "/src/demographics/dto",
+    "/src/emergency-contacts/dto",
+    "/src/student-academic-backgrounds/dto",
+    "/src/common/dtos/base",
+    "/src/common/dtos/queries",
+    "/src/enrollments/dto",
+    "/src/staff/dto",
+    "/src/teaching-load/dto",
+    "/src/grades/dto"
+  ],
+
+  // Biome como formateador predeterminado para TS/JS/Prisma
+  "[typescript]": {
+    "editor.defaultFormatter": "biomejs.biome",
+    "editor.formatOnSave": true
+  },
+  "[typescriptreact]": {
+    "editor.defaultFormatter": "biomejs.biome",
+    "editor.formatOnSave": true
+  },
+  "[javascript]": {
+    "editor.defaultFormatter": "biomejs.biome",
+    "editor.formatOnSave": true
+  },
+  "[javascriptreact]": {
+    "editor.defaultFormatter": "biomejs.biome",
+    "editor.formatOnSave": true
+  },
+  "[prisma]": {
+    "editor.defaultFormatter": "Prisma.prisma",
+    "editor.formatOnSave": true
+  },
+  "exportall.config.relExclusion": [
+    "/src/common/types/index.ts",
+    "/src/common/index.ts",
+    "/src/users",
+    "/src/users/dto",
+    "/src/common/constants",
+    "/src/common/helpers"
+  ]
+}

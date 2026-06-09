@@ -1,0 +1,1542 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["views"]
+}
+
+datasource db {
+  provider = "mysql"
+}
+
+model AcademicDiscipline {
+  id                    Int                  @id @default(autoincrement()) @db.UnsignedTinyInt
+  name                  String               @unique(map: "name_UNIQUE") @db.VarChar(45)
+  schoolOfferedLevelId  Int                  @default(3) @map("school_offered_level_id") @db.UnsignedTinyInt
+  createdAt             DateTime             @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt             DateTime             @default(now()) @map("updated_at") @db.Timestamp(0)
+  school_offered_levels SchoolOfferedLevel   @relation(fields: [schoolOfferedLevelId], references: [id], map: "fk_academic_disciplines_offered_level")
+  educational_programs  EducationalProgram[]
+
+  @@index([schoolOfferedLevelId], map: "fk_academic_disciplines_offered_level")
+  @@map("academic_disciplines")
+}
+
+model Address {
+  id                                Int        @id @default(autoincrement())
+  streetTypeId                      Int        @default(1) @map("street_type_id") @db.TinyInt
+  street                            String     @db.VarChar(45)
+  exteriorNumber                    String     @default("") @map("exterior_number") @db.VarChar(20)
+  interiorNumber                    String     @default("") @map("interior_number") @db.VarChar(20)
+  block                             String     @default("") @db.VarChar(20)
+  betweenStreets                    String     @default("") @map("between_streets") @db.VarChar(90)
+  personId                          Int        @unique(map: "uk_person_id") @map("person_id") @db.UnsignedInt
+  zipCodeId                         Int        @map("zip_code_id")
+  createdAt                         DateTime   @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt                         DateTime   @default(now()) @map("updated_at") @db.Timestamp(6)
+  createdBy                         Int        @map("created_by") @db.UnsignedInt
+  updatedBy                         Int        @map("updated_by") @db.UnsignedInt
+  users_addresses_created_byTousers User       @relation("addresses_created_byTousers", fields: [createdBy], references: [id], map: "fk_addresses_created_by")
+  persons                           Person     @relation(fields: [personId], references: [id], map: "fk_addresses_person")
+  street_types                      StreetType @relation(fields: [streetTypeId], references: [id], map: "fk_addresses_street_type")
+  users_addresses_updated_byTousers User       @relation("addresses_updated_byTousers", fields: [updatedBy], references: [id], map: "fk_addresses_updated_by")
+  zip_codes                         ZipCode    @relation(fields: [zipCodeId], references: [id], map: "fk_addresses_zip_code")
+
+  @@index([streetTypeId], map: "fk_addresses_street_type")
+  @@index([createdBy], map: "idx_created_by")
+  @@index([updatedBy], map: "idx_updated_by")
+  @@index([zipCodeId], map: "idx_zip_code_id")
+  @@map("addresses")
+}
+
+model EducationLevel {
+  id                     Int                    @id @default(autoincrement()) @db.UnsignedTinyInt
+  level                  String                 @unique(map: "level_UNIQUE") @db.VarChar(45)
+  createdAt              DateTime               @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt              DateTime               @default(now()) @map("updated_at") @db.Timestamp(0)
+  staff_academic_profile StaffAcademicProfile[]
+
+  @@map("education_levels")
+}
+
+model EducationalProgram {
+  id                   Int                @id @default(autoincrement()) @db.UnsignedInt
+  code                 String             @unique(map: "code_UNIQUE") @db.Char(6)
+  epKey                String             @unique(map: "ep_key_UNIQUE") @map("ep_key") @db.VarChar(12)
+  subesKey             String             @unique(map: "subes_key_UNIQUE") @map("subes_key") @db.VarChar(12)
+  name                 String             @unique(map: "name_UNIQUE") @db.VarChar(125)
+  academicDisciplineId Int                @map("academic_discipline_id") @db.UnsignedTinyInt
+  studyPlan            String             @map("study_plan") @db.Char(4)
+  modalityId           Int                @map("modality_id") @db.UnsignedTinyInt
+  credits              Decimal            @default(0.00) @db.Decimal(5, 2)
+  position             Int                @db.UnsignedTinyInt
+  createdAt            DateTime           @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt            DateTime           @default(now()) @map("updated_at") @db.Timestamp(0)
+  classes              Class[]
+  academic_disciplines AcademicDiscipline @relation(fields: [academicDisciplineId], references: [id], map: "fk_ep_academic_discipline")
+  modalities           Modality           @relation(fields: [modalityId], references: [id], map: "fk_ep_modality")
+  students             Student[]
+  study_plans          StudyPlan[]
+
+  @@index([academicDisciplineId], map: "fk_ep_academic_discipline_idx")
+  @@index([modalityId], map: "fk_ep_modality_idx")
+  @@map("educational_programs")
+}
+
+model MaritalStatus {
+  id           Int           @id @default(autoincrement()) @db.UnsignedTinyInt
+  status       String        @unique(map: "status_UNIQUE") @db.VarChar(25)
+  createdAt    DateTime?     @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt    DateTime?     @default(now()) @map("updated_at") @db.Timestamp(0)
+  demographics Demographic[]
+
+  @@map("marital_statuses")
+}
+
+model Modality {
+  id                   Int                  @id @default(autoincrement()) @db.UnsignedTinyInt
+  name                 String               @unique(map: "name_UNIQUE") @db.VarChar(50)
+  createdAt            DateTime             @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt            DateTime             @default(now()) @map("updated_at") @db.Timestamp(0)
+  educational_programs EducationalProgram[]
+
+  @@map("modalities")
+}
+
+model Municipality {
+  id                Int              @id @default(autoincrement()) @db.UnsignedInt
+  code              String           @unique(map: "code_UNIQUE") @db.Char(5)
+  inegiNumber       String           @map("inegi_number") @db.Char(3)
+  municipality      String           @db.VarChar(100)
+  municipalCapital  String           @map("municipal_capital") @db.VarChar(100)
+  stateId           Int              @map("state_id") @db.UnsignedTinyInt
+  createdAt         DateTime         @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt         DateTime         @default(now()) @map("updated_at") @db.Timestamp(0)
+  states            State            @relation(fields: [stateId], references: [id], map: "fk_municipality_state")
+  persons           Person[]
+  schools_of_origin SchoolOfOrigin[]
+  zip_codes         ZipCode[]
+
+  @@index([stateId], map: "fk_municipality_state")
+  @@map("municipalities")
+}
+
+model Person {
+  id                              Int               @id @default(autoincrement()) @db.UnsignedInt
+  curp                            String            @unique(map: "curp_UNIQUE") @db.Char(18)
+  firstName                       String            @map("first_name") @db.VarChar(45)
+  firstLastName                   String            @map("first_last_name") @db.VarChar(25)
+  secondLastName                  String            @default("") @map("second_last_name") @db.VarChar(25)
+  gender                          String            @db.Char(1)
+  birthDate                       DateTime          @map("birth_date") @db.Date
+  nationality                     String            @db.VarChar(2)
+  stateId                         Int               @map("state_id") @db.UnsignedTinyInt
+  municipalityId                  Int?              @map("municipality_id") @db.UnsignedInt
+  phone                           String            @db.VarChar(10)
+  personalEmail                   String            @unique(map: "email_UNIQUE") @map("personal_email") @db.VarChar(90)
+  rfc                             String?           @unique(map: "rfc_UNIQUE") @db.VarChar(13)
+  createdAt                       DateTime          @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt                       DateTime          @default(now()) @map("updated_at") @db.Timestamp(0)
+  createdBy                       Int               @map("created_by") @db.UnsignedInt
+  updatedBy                       Int               @map("updated_by") @db.UnsignedInt
+  addresses                       Address?
+  demographics                    Demographic?
+  emergency_contacts              EmergencyContact?
+  users_persons_created_byTousers User              @relation("persons_created_byTousers", fields: [createdBy], references: [id], map: "fk_person_created_by")
+  municipalities                  Municipality?     @relation(fields: [municipalityId], references: [id], onDelete: Restrict, map: "fk_person_municipality")
+  states                          State             @relation(fields: [stateId], references: [id], map: "fk_person_state")
+  users_persons_updated_byTousers User              @relation("persons_updated_byTousers", fields: [updatedBy], references: [id], map: "fk_person_updated_by")
+  staff                           Staff[]
+  students                        Student[]
+  users_users_person_idTopersons  User?             @relation("users_person_idTopersons")
+
+  @@index([createdBy], map: "fk_person_created_by")
+  @@index([municipalityId], map: "fk_person_municipality")
+  @@index([stateId], map: "fk_person_state")
+  @@index([updatedBy], map: "fk_person_updated_by")
+  @@map("persons")
+}
+
+model Role {
+  id          Int       @id @default(autoincrement()) @db.UnsignedInt
+  name        String    @unique(map: "name") @db.VarChar(50)
+  description String    @db.VarChar(250)
+  createdAt   DateTime? @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt   DateTime? @default(now()) @map("updated_at") @db.Timestamp(0)
+  users       User[]
+
+  @@map("roles")
+}
+
+model SettlementType {
+  id             Int       @id @default(autoincrement()) @db.UnsignedTinyInt
+  settlementType String    @unique(map: "settlement_name_UNIQUE") @map("settlement_type") @db.VarChar(25)
+  abbreviation   String    @db.VarChar(15)
+  createdAt      DateTime  @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt      DateTime  @default(now()) @map("updated_at") @db.Timestamp(6)
+  zip_codes      ZipCode[]
+
+  @@map("settlement_types")
+}
+
+model State {
+  id             Int            @id @default(autoincrement()) @db.UnsignedTinyInt
+  code           String         @unique(map: "code_UNIQUE") @db.Char(2)
+  inegiCode      String         @unique(map: "inegi_code_UNIQUE") @map("inegi_code") @db.Char(2)
+  name           String         @db.VarChar(45)
+  createdAt      DateTime       @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt      DateTime       @default(now()) @map("updated_at") @db.Timestamp(0)
+  municipalities Municipality[]
+  persons        Person[]
+
+  @@map("states")
+}
+
+model StreetType {
+  id           Int       @id @default(autoincrement()) @db.TinyInt
+  abbreviation String    @db.VarChar(10)
+  name         String    @db.VarChar(45)
+  createdAt    DateTime? @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt    DateTime? @default(now()) @map("updated_at") @db.Timestamp(0)
+  addresses    Address[]
+
+  @@map("street_types")
+}
+
+model StudentGeneration {
+  id                  Int       @id @default(autoincrement()) @db.UnsignedTinyInt
+  cardinalNumber      Int       @unique(map: "cardinal_number_UNIQUE") @map("cardinal_number") @db.TinyInt
+  ordinalNumber       String    @unique(map: "ordinal_number_UNIQUE") @map("ordinal_number") @db.VarChar(6)
+  mastersDegreeCycle  String    @unique(map: "masters_degree_cycle_UNIQUE") @map("masters_degree_cycle") @db.VarChar(10)
+  bachelorDegreeCycle String    @unique(map: "bachelor_degree_cycle_UNIQUE") @map("bachelor_degree_cycle") @db.VarChar(10)
+  generationName      String    @map("generation_name") @db.VarChar(50)
+  createdAt           DateTime  @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt           DateTime  @default(now()) @map("updated_at") @db.Timestamp(0)
+  students            Student[]
+
+  @@map("student_generations")
+}
+
+model StudentStatus {
+  id                  Int                 @id @db.UnsignedTinyInt
+  statusKey           String              @unique(map: "status_key_UNIQUE") @map("status_key") @db.Char(2)
+  description         String              @db.VarChar(25)
+  isActive            Boolean             @default(true) @map("is_active")
+  createdAt           DateTime            @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt           DateTime            @default(now()) @map("updated_at") @db.Timestamp(0)
+  student_withdrawals StudentWithdrawal[]
+  students            Student[]
+
+  @@map("student_status")
+}
+
+model Student {
+  id                               Int                        @id @default(autoincrement()) @db.UnsignedInt
+  personId                         Int                        @map("person_id") @db.UnsignedInt
+  generationId                     Int                        @map("generation_id") @db.UnsignedTinyInt
+  institutionalMail                String?                    @unique(map: "institutional_mail_UNIQUE") @map("institutional_mail") @db.VarChar(125)
+  codeNumber                       String?                    @unique(map: "code_number_UNIQUE") @map("code_number") @db.VarChar(25)
+  educationalProgramId             Int                        @map("educational_program_id") @db.UnsignedInt
+  statusId                         Int                        @default(6) @map("status_id") @db.UnsignedTinyInt
+  createdBy                        Int                        @map("created_by") @db.UnsignedInt
+  updatedBy                        Int                        @map("updated_by") @db.UnsignedInt
+  createdAt                        DateTime                   @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt                        DateTime                   @default(now()) @map("updated_at") @db.Timestamp(0)
+  enrollments                      Enrollment[]
+  student_academic_backgrounds     StudentAcademicBackground?
+  users_students_created_byTousers User                       @relation("students_created_byTousers", fields: [createdBy], references: [id], map: "fk_students_created_by")
+  educational_programs             EducationalProgram         @relation(fields: [educationalProgramId], references: [id], map: "fk_students_educational_program_id")
+  student_generations              StudentGeneration          @relation(fields: [generationId], references: [id], map: "fk_students_generation_id")
+  persons                          Person                     @relation(fields: [personId], references: [id], map: "fk_students_person_id")
+  student_status                   StudentStatus              @relation(fields: [statusId], references: [id], map: "fk_students_status_id")
+  users_students_updated_byTousers User                       @relation("students_updated_byTousers", fields: [updatedBy], references: [id], map: "fk_students_updated_by")
+
+  @@unique([personId, educationalProgramId], map: "unique_person_educational_program")
+  @@index([createdBy], map: "fk_students_created_by_idx")
+  @@index([educationalProgramId], map: "fk_students_educational_program_id_idx")
+  @@index([generationId], map: "fk_students_generation_id_idx")
+  @@index([statusId], map: "fk_students_status_id_idx")
+  @@index([updatedBy], map: "fk_students_updated_by_idx")
+  @@map("students")
+}
+
+model UserType {
+  id          Int      @id @default(autoincrement()) @db.UnsignedTinyInt
+  code        String   @unique(map: "code_UNIQUE") @db.VarChar(20)
+  name        String   @db.VarChar(60)
+  description String?  @db.VarChar(255)
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt   DateTime @default(now()) @map("updated_at") @db.Timestamp(0)
+  users       User[]
+
+  @@map("user_types")
+}
+
+model User {
+  id                                                                          Int                         @id @default(autoincrement()) @db.UnsignedInt
+  username                                                                    String                      @unique(map: "email_UNIQUE") @db.VarChar(125)
+  password                                                                    String                      @db.VarChar(255)
+  personId                                                                    Int                         @unique(map: "person_id_UNIQUE") @map("person_id") @db.UnsignedInt
+  roleId                                                                      Int                         @map("role_id") @db.UnsignedInt
+  isActive                                                                    Boolean                     @default(true) @map("is_active")
+  isFirstLogin                                                                Boolean                     @default(true) @map("is_first_login")
+  photoUrl                                                                    String?                     @map("photo_url") @db.VarChar(255)
+  loginAttempts                                                               Int                         @default(0) @map("login_attempts")
+  lockedUntil                                                                 DateTime?                   @map("locked_until") @db.DateTime(0)
+  createdAt                                                                   DateTime?                   @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt                                                                   DateTime?                   @default(now()) @map("updated_at") @db.Timestamp(0)
+  userTypeId                                                                  Int                         @map("user_type_id") @db.UnsignedTinyInt
+  createdBy                                                                   Int?                        @map("created_by") @db.UnsignedInt
+  updatedBy                                                                   Int?                        @map("updated_by") @db.UnsignedInt
+  addresses_addresses_created_byTousers                                       Address[]                   @relation("addresses_created_byTousers")
+  addresses_addresses_updated_byTousers                                       Address[]                   @relation("addresses_updated_byTousers")
+  classes_classes_created_byTousers                                           Class[]                     @relation("classes_created_byTousers")
+  classes_classes_updated_byTousers                                           Class[]                     @relation("classes_updated_byTousers")
+  demographics                                                                Demographic[]
+  demographics_demographics_updated_byTousers                                 Demographic[]               @relation("demographics_updated_byTousers")
+  emergency_contacts_emergency_contacts_created_byTousers                     EmergencyContact[]          @relation("emergency_contacts_created_byTousers")
+  emergency_contacts_emergency_contacts_updated_byTousers                     EmergencyContact[]          @relation("emergency_contacts_updated_byTousers")
+  enrollments_enrollments_created_byTousers                                   Enrollment[]                @relation("enrollments_created_byTousers")
+  enrollments_enrollments_updated_byTousers                                   Enrollment[]                @relation("enrollments_updated_byTousers")
+  grades_grades_created_byTousers                                             Grade[]                     @relation("grades_created_byTousers")
+  grades_grades_updated_byTousers                                             Grade[]                     @relation("grades_updated_byTousers")
+  persons_persons_created_byTousers                                           Person[]                    @relation("persons_created_byTousers")
+  persons_persons_updated_byTousers                                           Person[]                    @relation("persons_updated_byTousers")
+  professional_degrees_professional_degrees_created_byTousers                 ProfessionalDegree[]        @relation("professional_degrees_created_byTousers")
+  professional_degrees_professional_degrees_updated_byTousers                 ProfessionalDegree[]        @relation("professional_degrees_updated_byTousers")
+  schools_of_origin_schools_of_origin_created_byTousers                       SchoolOfOrigin[]            @relation("schools_of_origin_created_byTousers")
+  schools_of_origin_schools_of_origin_updated_byTousers                       SchoolOfOrigin[]            @relation("schools_of_origin_updated_byTousers")
+  staff_staff_created_byTousers                                               Staff[]                     @relation("staff_created_byTousers")
+  staff_staff_updated_byTousers                                               Staff[]                     @relation("staff_updated_byTousers")
+  staff_academic_profile_staff_academic_profile_created_byTousers             StaffAcademicProfile[]      @relation("staff_academic_profile_created_byTousers")
+  staff_academic_profile_staff_academic_profile_updated_byTousers             StaffAcademicProfile[]      @relation("staff_academic_profile_updated_byTousers")
+  staff_teaching_profile_staff_teaching_profile_created_byTousers             StaffTeachingProfile[]      @relation("staff_teaching_profile_created_byTousers")
+  staff_teaching_profile_staff_teaching_profile_updated_byTousers             StaffTeachingProfile[]      @relation("staff_teaching_profile_updated_byTousers")
+  student_academic_backgrounds_student_academic_backgrounds_created_byTousers StudentAcademicBackground[] @relation("student_academic_backgrounds_created_byTousers")
+  student_academic_backgrounds_student_academic_backgrounds_updated_byTousers StudentAcademicBackground[] @relation("student_academic_backgrounds_updated_byTousers")
+  student_withdrawals_student_withdrawals_created_byTousers                   StudentWithdrawal[]         @relation("student_withdrawals_created_byTousers")
+  student_withdrawals_student_withdrawals_updated_byTousers                   StudentWithdrawal[]         @relation("student_withdrawals_updated_byTousers")
+  students_students_created_byTousers                                         Student[]                   @relation("students_created_byTousers")
+  students_students_updated_byTousers                                         Student[]                   @relation("students_updated_byTousers")
+  study_plans_study_plans_created_byTousers                                   StudyPlan[]                 @relation("study_plans_created_byTousers")
+  study_plans_study_plans_updated_byTousers                                   StudyPlan[]                 @relation("study_plans_updated_byTousers")
+  teaching_load_teaching_load_created_byTousers                               TeachingLoad[]              @relation("teaching_load_created_byTousers")
+  teaching_load_teaching_load_updated_byTousers                               TeachingLoad[]              @relation("teaching_load_updated_byTousers")
+  teaching_load_schedule_teaching_load_schedule_created_byTousers             TeachingLoadSchedule[]      @relation("teaching_load_schedule_created_byTousers")
+  teaching_load_schedule_teaching_load_schedule_updated_byTousers             TeachingLoadSchedule[]      @relation("teaching_load_schedule_updated_byTousers")
+  persons_users_person_idTopersons                                            Person                      @relation("users_person_idTopersons", fields: [personId], references: [id], onDelete: NoAction, map: "fk_user_person")
+  roles                                                                       Role                        @relation(fields: [roleId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_user_role")
+  users_users_created_byTousers                                               User?                       @relation("users_created_byTousers", fields: [createdBy], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_users_created_by")
+  other_users_users_created_byTousers                                         User[]                      @relation("users_created_byTousers")
+  users_users_updated_byTousers                                               User?                       @relation("users_updated_byTousers", fields: [updatedBy], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_users_updated_by")
+  other_users_users_updated_byTousers                                         User[]                      @relation("users_updated_byTousers")
+  user_types                                                                  UserType                    @relation(fields: [userTypeId], references: [id], map: "fk_users_user_type")
+  zip_codes_zip_codes_created_byTousers                                       ZipCode[]                   @relation("zip_codes_created_byTousers")
+  zip_codes_zip_codes_updated_byTousers                                       ZipCode[]                   @relation("zip_codes_updated_byTousers")
+
+  @@index([personId], map: "fk_user_person")
+  @@index([roleId], map: "fk_user_role")
+  @@index([createdBy], map: "fk_users_created_by")
+  @@index([updatedBy], map: "fk_users_updated_by")
+  @@index([userTypeId], map: "fk_users_user_type")
+  @@map("users")
+}
+
+model ZipCode {
+  id                                Int                 @id @default(autoincrement())
+  zipCode                           String              @map("zip_code") @db.Char(5)
+  settlement                        String              @db.VarChar(125)
+  settlementTypeId                  Int                 @map("settlement_type_id") @db.UnsignedTinyInt
+  municipalityId                    Int                 @map("municipality_id") @db.UnsignedInt
+  locality                          String              @default("") @db.VarChar(125)
+  zoneType                          zip_codes_zone_type @map("zone_type")
+  createdBy                         Int                 @map("created_by") @db.UnsignedInt
+  updatedBy                         Int                 @map("updated_by") @db.UnsignedInt
+  createdAt                         DateTime            @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt                         DateTime            @default(now()) @map("updated_at") @db.Timestamp(6)
+  addresses                         Address[]
+  users_zip_codes_created_byTousers User                @relation("zip_codes_created_byTousers", fields: [createdBy], references: [id], map: "fk_zip_codes_created_by")
+  municipalities                    Municipality        @relation(fields: [municipalityId], references: [id], map: "fk_zip_codes_municipality")
+  settlement_types                  SettlementType      @relation(fields: [settlementTypeId], references: [id], map: "fk_zip_codes_settlement_type")
+  users_zip_codes_updated_byTousers User                @relation("zip_codes_updated_byTousers", fields: [updatedBy], references: [id], map: "fk_zip_codes_updated_by")
+
+  @@unique([zipCode, settlement, settlementTypeId, municipalityId], map: "uk_zip_code_settlement_type_municipality")
+  @@index([createdBy], map: "idx_created_by")
+  @@index([municipalityId], map: "idx_municipality_id")
+  @@index([settlementTypeId], map: "idx_settlement_type_id")
+  @@index([updatedBy], map: "idx_updated_by")
+  @@index([zipCode], map: "idx_zip_code")
+  @@index([zoneType], map: "idx_zone_type")
+  @@map("zip_codes")
+}
+
+model SchoolOfferedLevel {
+  id                    Int                  @id @default(autoincrement()) @db.UnsignedTinyInt
+  offeredEducationLevel String               @unique(map: "uq_offered_level") @map("offered_education_level") @db.VarChar(45)
+  createdAt             DateTime             @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt             DateTime             @default(now()) @map("updated_at") @db.Timestamp(0)
+  academic_disciplines  AcademicDiscipline[]
+  schools_of_origin     SchoolOfOrigin[]
+
+  @@map("school_offered_levels")
+}
+
+model SchoolOfOrigin {
+  id                                        Int                         @id @default(autoincrement()) @db.UnsignedInt
+  cct                                       String                      @unique(map: "uk_schools_cct") @db.VarChar(15)
+  name                                      String                      @unique(map: "uk_schools_name") @db.VarChar(150)
+  fundingSource                             String                      @default("No especificado") @map("funding_source") @db.VarChar(30)
+  offeredLevelId                            Int                         @default(2) @map("offered_level_id") @db.UnsignedTinyInt
+  municipalityId                            Int                         @map("municipality_id") @db.UnsignedInt
+  createdBy                                 Int                         @map("created_by") @db.UnsignedInt
+  updatedBy                                 Int                         @map("updated_by") @db.UnsignedInt
+  createdAt                                 DateTime                    @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt                                 DateTime                    @default(now()) @map("updated_at") @db.Timestamp(0)
+  users_schools_of_origin_created_byTousers User                        @relation("schools_of_origin_created_byTousers", fields: [createdBy], references: [id], map: "fk_schools_creator")
+  municipalities                            Municipality                @relation(fields: [municipalityId], references: [id], map: "fk_schools_municipality")
+  school_offered_levels                     SchoolOfferedLevel          @relation(fields: [offeredLevelId], references: [id], map: "fk_schools_offered_level")
+  users_schools_of_origin_updated_byTousers User                        @relation("schools_of_origin_updated_byTousers", fields: [updatedBy], references: [id], map: "fk_schools_updater")
+  staff_academic_profile                    StaffAcademicProfile[]
+  student_academic_backgrounds              StudentAcademicBackground[]
+
+  @@index([createdBy], map: "fk_schools_creator")
+  @@index([municipalityId], map: "fk_schools_municipality")
+  @@index([offeredLevelId], map: "fk_schools_offered_level")
+  @@index([updatedBy], map: "fk_schools_updater")
+  @@map("schools_of_origin")
+}
+
+model Demographic {
+  id                                   Int                @id @default(autoincrement()) @db.UnsignedInt
+  personId                             Int                @unique(map: "uq_pd_person") @map("person_id") @db.UnsignedInt
+  maritalStatusId                      Int                @default(1) @map("marital_status_id") @db.UnsignedTinyInt
+  indigenousLangId                     Int                @default(1) @map("indigenous_lang_id") @db.UnsignedTinyInt
+  foreignLangId                        Int                @default(1) @map("foreign_lang_id") @db.UnsignedTinyInt
+  specialConditionId                   Int                @default(1) @map("special_condition_id") @db.UnsignedTinyInt
+  isIndigenous                         Boolean            @default(false) @map("is_indigenous")
+  isAfroDescendant                     Boolean            @default(false) @map("is_afro_descendant")
+  createdBy                            Int                @map("created_by") @db.UnsignedInt
+  updatedBy                            Int                @map("updated_by") @db.UnsignedInt
+  createdAt                            DateTime           @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt                            DateTime           @default(now()) @map("updated_at") @db.Timestamp(0)
+  users                                User               @relation(fields: [createdBy], references: [id], map: "fk_pd_creator")
+  foreign_languages                    ForeignLanguage    @relation(fields: [foreignLangId], references: [id], map: "fk_pd_foreign")
+  indigenous_languages                 IndigenousLanguage @relation(fields: [indigenousLangId], references: [id], map: "fk_pd_indigenous")
+  marital_statuses                     MaritalStatus      @relation(fields: [maritalStatusId], references: [id], map: "fk_pd_marital")
+  persons                              Person             @relation(fields: [personId], references: [id], map: "fk_pd_person")
+  special_conditions                   SpecialCondition   @relation(fields: [specialConditionId], references: [id], map: "fk_pd_special")
+  users_demographics_updated_byTousers User               @relation("demographics_updated_byTousers", fields: [updatedBy], references: [id], map: "fk_pd_updater")
+
+  @@index([createdBy], map: "fk_pd_creator")
+  @@index([foreignLangId], map: "fk_pd_foreign")
+  @@index([indigenousLangId], map: "fk_pd_indigenous")
+  @@index([maritalStatusId], map: "fk_pd_marital")
+  @@index([specialConditionId], map: "fk_pd_special")
+  @@index([updatedBy], map: "fk_pd_updater")
+  @@map("demographics")
+}
+
+model EmergencyContact {
+  id                                         Int                 @id @default(autoincrement()) @db.UnsignedInt
+  personId                                   Int                 @unique(map: "person_id_UNIQUE") @map("person_id") @db.UnsignedInt
+  fullName                                   String              @default("No Especificado") @map("full_name") @db.VarChar(125)
+  phone                                      String              @db.VarChar(10)
+  relationshipId                             Int                 @map("relationship_id") @db.UnsignedTinyInt
+  createdBy                                  Int                 @map("created_by") @db.UnsignedInt
+  updatedBy                                  Int                 @map("updated_by") @db.UnsignedInt
+  createdAt                                  DateTime            @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt                                  DateTime            @default(now()) @map("updated_at") @db.Timestamp(0)
+  users_emergency_contacts_created_byTousers User                @relation("emergency_contacts_created_byTousers", fields: [createdBy], references: [id], map: "fk_pec_creator")
+  persons                                    Person              @relation(fields: [personId], references: [id], map: "fk_pec_person")
+  contact_relationships                      ContactRelationship @relation(fields: [relationshipId], references: [id], map: "fk_pec_relationship")
+  users_emergency_contacts_updated_byTousers User                @relation("emergency_contacts_updated_byTousers", fields: [updatedBy], references: [id], map: "fk_pec_updater")
+
+  @@index([createdBy], map: "fk_pec_creator")
+  @@index([relationshipId], map: "fk_pec_relationship")
+  @@index([updatedBy], map: "fk_pec_updater")
+  @@index([personId], map: "idx_pec_person")
+  @@map("emergency_contacts")
+}
+
+model ForeignLanguage {
+  id           Int           @id @default(autoincrement()) @db.UnsignedTinyInt
+  name         String        @unique(map: "uk_foreign_language_name") @db.VarChar(50)
+  createdAt    DateTime      @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt    DateTime      @default(now()) @map("updated_at") @db.Timestamp(0)
+  demographics Demographic[]
+
+  @@map("foreign_languages")
+}
+
+model IndigenousLanguage {
+  id           Int           @id @default(autoincrement()) @db.UnsignedTinyInt
+  name         String        @unique(map: "uk_indigenous_language_name") @db.VarChar(70)
+  createdAt    DateTime      @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt    DateTime      @default(now()) @map("updated_at") @db.Timestamp(0)
+  demographics Demographic[]
+
+  @@map("indigenous_languages")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model ProfessionalDegree {
+  id                                           Int                         @id @default(autoincrement()) @db.UnsignedInt
+  name                                         String                      @unique(map: "uk_professional_degree_name") @db.VarChar(150)
+  createdBy                                    Int                         @map("created_by") @db.UnsignedInt
+  updatedBy                                    Int                         @map("updated_by") @db.UnsignedInt
+  createdAt                                    DateTime                    @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt                                    DateTime                    @default(now()) @map("updated_at") @db.Timestamp(0)
+  users_professional_degrees_created_byTousers User                        @relation("professional_degrees_created_byTousers", fields: [createdBy], references: [id], map: "fk_professional_degrees_creator")
+  users_professional_degrees_updated_byTousers User                        @relation("professional_degrees_updated_byTousers", fields: [updatedBy], references: [id], map: "fk_professional_degrees_updater")
+  student_academic_backgrounds                 StudentAcademicBackground[]
+
+  @@index([createdBy], map: "fk_professional_degrees_creator")
+  @@index([updatedBy], map: "fk_professional_degrees_updater")
+  @@map("professional_degrees")
+}
+
+model SpecialCondition {
+  id           Int           @id @default(autoincrement()) @db.UnsignedTinyInt
+  name         String        @unique(map: "uk_special_condition_name") @db.VarChar(100)
+  createdAt    DateTime      @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt    DateTime      @default(now()) @map("updated_at") @db.Timestamp(0)
+  demographics Demographic[]
+
+  @@map("special_conditions")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model StudentAcademicBackground {
+  id                                                   Int                @id @default(autoincrement()) @db.UnsignedInt
+  studentId                                            Int                @unique(map: "uq_student_background_level") @map("student_id") @db.UnsignedInt
+  schoolOfOriginId                                     Int                @map("school_of_origin_id") @db.UnsignedInt
+  professionalDegreeId                                 Int                @default(1) @map("professional_degree_id") @db.UnsignedInt
+  average                                              Decimal            @default(0.00) @db.Decimal(4, 2)
+  createdBy                                            Int                @map("created_by") @db.UnsignedInt
+  updatedBy                                            Int                @map("updated_by") @db.UnsignedInt
+  createdAt                                            DateTime           @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt                                            DateTime           @default(now()) @map("updated_at") @db.Timestamp(0)
+  users_student_academic_backgrounds_created_byTousers User               @relation("student_academic_backgrounds_created_byTousers", fields: [createdBy], references: [id], map: "fk_sab_creator")
+  professional_degrees                                 ProfessionalDegree @relation(fields: [professionalDegreeId], references: [id], map: "fk_sab_degree")
+  schools_of_origin                                    SchoolOfOrigin     @relation(fields: [schoolOfOriginId], references: [id], map: "fk_sab_school")
+  students                                             Student            @relation(fields: [studentId], references: [id], map: "fk_sab_student")
+  users_student_academic_backgrounds_updated_byTousers User               @relation("student_academic_backgrounds_updated_byTousers", fields: [updatedBy], references: [id], map: "fk_sab_updater")
+
+  @@index([createdBy], map: "fk_sab_creator")
+  @@index([professionalDegreeId], map: "fk_sab_degree")
+  @@index([schoolOfOriginId], map: "fk_sab_school")
+  @@index([updatedBy], map: "fk_sab_updater")
+  @@map("student_academic_backgrounds")
+}
+
+model ContactRelationship {
+  id                 Int                @id @default(autoincrement()) @db.UnsignedTinyInt
+  name               String             @unique(map: "uk_contact_relationship_name") @db.VarChar(50)
+  createdAt          DateTime           @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt          DateTime           @default(now()) @map("updated_at") @db.Timestamp(0)
+  emergency_contacts EmergencyContact[]
+
+  @@map("contact_relationships")
+}
+
+model Class {
+  id                              Int                @id @default(autoincrement()) @db.UnsignedInt
+  classCode                       String             @unique(map: "uk_class_code") @map("class_code") @db.Char(11)
+  group                           String             @default("Único") @db.VarChar(6)
+  shift                           String             @default("Matutino") @db.VarChar(12)
+  educationalProgramId            Int                @map("educational_program_id") @db.UnsignedInt
+  schoolYearId                    Int                @map("school_year_id") @db.SmallInt
+  semesterId                      Int                @map("semester_id") @db.UnsignedTinyInt
+  semiannualPeriodId              Int                @map("semiannual_period_id") @db.UnsignedInt
+  elective                        String             @default("No aplica") @db.VarChar(125)
+  createdBy                       Int                @map("created_by") @db.UnsignedInt
+  updatedBy                       Int                @map("updated_by") @db.UnsignedInt
+  createdAt                       DateTime           @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt                       DateTime           @default(now()) @map("updated_at") @db.Timestamp(0)
+  users_classes_created_byTousers User               @relation("classes_created_byTousers", fields: [createdBy], references: [id], map: "fk_classes_created_by")
+  educational_programs            EducationalProgram @relation(fields: [educationalProgramId], references: [id], map: "fk_classes_educational_program")
+  semesters                       Semester           @relation(fields: [semesterId], references: [id], map: "fk_classes_semester")
+  semiannual_periods              SemiannualPeriod   @relation(fields: [semiannualPeriodId], references: [id], map: "fk_classes_semiannual_period")
+  users_classes_updated_byTousers User               @relation("classes_updated_byTousers", fields: [updatedBy], references: [id], map: "fk_classes_updated_by")
+  enrollments                     Enrollment[]
+  teaching_load                   TeachingLoad[]
+
+  @@index([createdBy], map: "fk_classes_created_by_idx")
+  @@index([educationalProgramId], map: "fk_classes_educational_program_idx")
+  @@index([schoolYearId], map: "fk_classes_school_year_idx")
+  @@index([semesterId], map: "fk_classes_semester_idx")
+  @@index([semiannualPeriodId], map: "fk_classes_semiannual_period_idx")
+  @@index([updatedBy], map: "fk_classes_updated_by_idx")
+  @@map("classes")
+}
+
+model SchoolYear {
+  id         Int      @id @default(autoincrement()) @db.UnsignedSmallInt
+  schoolYear String   @unique(map: "uk_school_year") @map("school_year") @db.Char(9)
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt  DateTime @default(now()) @map("updated_at") @db.Timestamp(0)
+
+  @@map("school_years")
+}
+
+model Semester {
+  id            Int         @id @default(autoincrement()) @db.UnsignedTinyInt
+  number        Int         @unique(map: "uk_semester_number") @db.UnsignedTinyInt
+  ordinalNumber String      @unique(map: "uk_ordinal_number") @map("ordinal_number") @db.Char(3)
+  createdAt     DateTime    @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt     DateTime    @default(now()) @map("updated_at") @db.Timestamp(0)
+  classes       Class[]
+  study_plans   StudyPlan[]
+
+  @@map("semesters")
+}
+
+model SemiannualPeriod {
+  id               Int                            @id @default(autoincrement()) @db.UnsignedInt
+  semiannualPeriod String                         @unique(map: "uk_semiannual_period") @map("semiannual_period") @db.VarChar(30)
+  periodType       semiannual_periods_period_type @default(regular) @map("period_type")
+  createdAt        DateTime                       @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt        DateTime                       @default(now()) @map("updated_at") @db.Timestamp(0)
+  classes          Class[]
+
+  @@map("semiannual_periods")
+}
+
+model Enrollment {
+  id                                  Int                @id @default(autoincrement()) @db.UnsignedInt
+  studentId                           Int                @map("student_id") @db.UnsignedInt
+  listNumber                          Int                @default(0) @map("list_number") @db.TinyInt
+  classId                             Int                @map("class_id") @db.UnsignedInt
+  enrollmentDate                      DateTime           @default(dbgenerated("(curdate())")) @map("enrollment_date") @db.Date
+  createdBy                           Int                @map("created_by") @db.UnsignedInt
+  updatedBy                           Int                @map("updated_by") @db.UnsignedInt
+  createdAt                           DateTime           @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt                           DateTime           @default(now()) @map("updated_at") @db.Timestamp(0)
+  classes                             Class              @relation(fields: [classId], references: [id], map: "fk_enrollments_class")
+  users_enrollments_created_byTousers User               @relation("enrollments_created_byTousers", fields: [createdBy], references: [id], map: "fk_enrollments_created_by")
+  students                            Student            @relation(fields: [studentId], references: [id], map: "fk_enrollments_student")
+  users_enrollments_updated_byTousers User               @relation("enrollments_updated_byTousers", fields: [updatedBy], references: [id], map: "fk_enrollments_updated_by")
+  grades                              Grade[]
+  student_withdrawals                 StudentWithdrawal?
+
+  @@unique([studentId, classId], map: "uk_student_class")
+  @@index([classId], map: "idx_enrollments_class_id")
+  @@index([createdBy], map: "idx_enrollments_created_by")
+  @@index([updatedBy], map: "idx_enrollments_updated_by")
+  @@map("enrollments")
+}
+
+model Category {
+  id    Int     @id @default(autoincrement()) @db.UnsignedSmallInt
+  name  String  @unique(map: "UK_name") @db.VarChar(150)
+  staff Staff[]
+
+  @@map("categories")
+}
+
+model Discipline {
+  id                     Int                    @id @default(autoincrement()) @db.UnsignedTinyInt
+  name                   String                 @unique(map: "UK_name") @db.VarChar(100)
+  createdAt              DateTime               @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt              DateTime               @default(now()) @map("updated_at") @db.Timestamp(0)
+  staff_academic_profile StaffAcademicProfile[]
+
+  @@map("disciplines")
+}
+
+model EmploymentDuration {
+  id        Int       @id @default(autoincrement()) @db.UnsignedTinyInt
+  name      String    @db.VarChar(45)
+  createdAt DateTime? @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt DateTime? @default(now()) @map("updated_at") @db.Timestamp(0)
+  staff     Staff[]
+
+  @@map("employment_duration")
+}
+
+model EmploymentType {
+  id        Int       @id @default(autoincrement()) @db.UnsignedTinyInt
+  name      String    @db.VarChar(45)
+  createdAt DateTime? @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt DateTime? @default(now()) @map("updated_at") @db.Timestamp(0)
+  staff     Staff[]
+
+  @@map("employment_type")
+}
+
+model KnowledgeArea {
+  id                     Int                    @id @default(autoincrement()) @db.UnsignedTinyInt
+  name                   String                 @unique(map: "UK_name") @db.VarChar(100)
+  createdAt              DateTime?              @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt              DateTime?              @default(now()) @map("updated_at") @db.Timestamp(0)
+  staff_academic_profile StaffAcademicProfile[]
+
+  @@map("knowledge_areas")
+}
+
+model Responsibility {
+  id        Int      @id @default(autoincrement()) @db.UnsignedTinyInt
+  name      String   @unique(map: "name_UNIQUE") @db.VarChar(45)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt DateTime @default(now()) @map("updated_at") @db.Timestamp(0)
+  staff     Staff[]
+
+  @@map("responsibilities")
+}
+
+model Staff {
+  id                            Int                   @id @default(autoincrement()) @db.UnsignedInt
+  personId                      Int                   @map("person_id") @db.UnsignedInt
+  titleKey                      String                @default("C.") @map("title_key") @db.VarChar(8)
+  staffTypeId                   Int                   @map("staff_type_id") @db.TinyInt
+  employmentTypeId              Int                   @map("employment_type_id") @db.UnsignedTinyInt
+  employmentDurationId          Int                   @map("employment_duration_id") @db.UnsignedTinyInt
+  responsibilityId              Int                   @map("responsibility_id") @db.UnsignedTinyInt
+  categoryId                    Int                   @default(1) @map("category_id") @db.UnsignedSmallInt
+  staffStatusId                 Int                   @map("staff_status_id") @db.UnsignedTinyInt
+  systemEntryDate               DateTime?             @map("system_entry_date") @db.Date
+  schoolEntryDate               DateTime?             @map("school_entry_date") @db.Date
+  institutionalMail             String?               @map("institutional_mail") @db.VarChar(100)
+  paymentUniqueKey              String                @default("No especificado") @map("payment_unique_key") @db.VarChar(45)
+  createdBy                     Int                   @map("created_by") @db.UnsignedInt
+  updatedBy                     Int                   @map("updated_by") @db.UnsignedInt
+  createdAt                     DateTime              @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt                     DateTime              @default(now()) @map("updated_at") @db.Timestamp(6)
+  categories                    Category              @relation(fields: [categoryId], references: [id], map: "fk_staff_category")
+  users_staff_created_byTousers User                  @relation("staff_created_byTousers", fields: [createdBy], references: [id], map: "fk_staff_created_by")
+  employment_duration           EmploymentDuration    @relation(fields: [employmentDurationId], references: [id], map: "fk_staff_employment_duration")
+  employment_type               EmploymentType        @relation(fields: [employmentTypeId], references: [id], map: "fk_staff_employment_type")
+  persons                       Person                @relation(fields: [personId], references: [id], map: "fk_staff_person")
+  responsibilities              Responsibility        @relation(fields: [responsibilityId], references: [id], map: "fk_staff_responsibility")
+  staff_type                    StaffType             @relation(fields: [staffTypeId], references: [id], map: "fk_staff_staff_type")
+  staff_status                  StaffStatus           @relation(fields: [staffStatusId], references: [id], map: "fk_staff_status")
+  titles                        Title                 @relation(fields: [titleKey], references: [key], map: "fk_staff_title_key")
+  users_staff_updated_byTousers User                  @relation("staff_updated_byTousers", fields: [updatedBy], references: [id], map: "fk_staff_updated_by")
+  staff_academic_profile        StaffAcademicProfile?
+  staff_teaching_profile        StaffTeachingProfile?
+
+  @@unique([personId, staffTypeId, employmentTypeId, employmentDurationId, responsibilityId, categoryId], map: "uq_staff_unique_contract")
+  @@index([categoryId], map: "fk_staff_category_idx")
+  @@index([createdBy], map: "fk_staff_created_by_idx")
+  @@index([employmentDurationId], map: "fk_staff_employment_duration_idx")
+  @@index([employmentTypeId], map: "fk_staff_employment_type_idx")
+  @@index([personId], map: "fk_staff_person_idx")
+  @@index([responsibilityId], map: "fk_staff_responsibility_idx")
+  @@index([staffTypeId], map: "fk_staff_staff_type_idx")
+  @@index([titleKey], map: "fk_staff_title_key_idx")
+  @@index([updatedBy], map: "fk_staff_updated_by_idx")
+  @@index([staffStatusId], map: "fk_staff_status")
+  @@map("staff")
+}
+
+model StaffAcademicProfile {
+  id                                             Int             @id @default(autoincrement()) @db.UnsignedInt
+  staffId                                        Int             @unique(map: "uq_academic_profile_staff_id") @map("staff_id") @db.UnsignedInt
+  educationLevelId                               Int             @map("education_level_id") @db.UnsignedTinyInt
+  isGraduate                                     Boolean         @default(false) @map("is_graduate")
+  graduationDate                                 DateTime?       @map("graduation_date") @db.Date
+  schoolOfOriginId                               Int?            @map("school_of_origin_id") @db.UnsignedInt
+  knowledgeAreaId                                Int             @default(1) @map("knowledge_area_id") @db.UnsignedTinyInt
+  disciplineId                                   Int             @default(1) @map("discipline_id") @db.UnsignedTinyInt
+  sniLevel                                       String          @default("No aplica") @map("sni_level") @db.VarChar(20)
+  researchProject                                String          @default("Ninguno") @map("research_project") @db.VarChar(100)
+  thesisTopic                                    String          @default("Ninguno") @map("thesis_topic") @db.VarChar(150)
+  hasDoneStay                                    Boolean         @default(false) @map("has_done_stay")
+  createdBy                                      Int             @map("created_by") @db.UnsignedInt
+  updatedBy                                      Int             @map("updated_by") @db.UnsignedInt
+  createdAt                                      DateTime        @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt                                      DateTime        @default(now()) @map("updated_at") @db.Timestamp(6)
+  users_staff_academic_profile_created_byTousers User            @relation("staff_academic_profile_created_byTousers", fields: [createdBy], references: [id], map: "fk_academic_profile_created_by")
+  disciplines                                    Discipline      @relation(fields: [disciplineId], references: [id], map: "fk_academic_profile_discipline")
+  education_levels                               EducationLevel  @relation(fields: [educationLevelId], references: [id], map: "fk_academic_profile_education_level")
+  knowledge_areas                                KnowledgeArea   @relation(fields: [knowledgeAreaId], references: [id], map: "fk_academic_profile_knowledge_area")
+  schools_of_origin                              SchoolOfOrigin? @relation(fields: [schoolOfOriginId], references: [id], onDelete: Restrict, map: "fk_academic_profile_school_of_origin")
+  staff                                          Staff           @relation(fields: [staffId], references: [id], map: "fk_academic_profile_staff")
+  users_staff_academic_profile_updated_byTousers User            @relation("staff_academic_profile_updated_byTousers", fields: [updatedBy], references: [id], map: "fk_academic_profile_updated_by")
+
+  @@index([createdBy], map: "fk_academic_profile_created_by_idx")
+  @@index([disciplineId], map: "fk_academic_profile_discipline_idx")
+  @@index([educationLevelId], map: "fk_academic_profile_education_level_idx")
+  @@index([knowledgeAreaId], map: "fk_academic_profile_knowledge_area_idx")
+  @@index([schoolOfOriginId], map: "fk_academic_profile_school_of_origin_idx")
+  @@index([staffId], map: "fk_academic_profile_staff_idx")
+  @@index([updatedBy], map: "fk_academic_profile_updated_by_idx")
+  @@map("staff_academic_profile")
+}
+
+model StaffTeachingProfile {
+  id                                             Int            @id @default(autoincrement()) @db.UnsignedInt
+  staffId                                        Int            @unique(map: "uq_teaching_profile_staff_id") @map("staff_id") @db.UnsignedInt
+  isClassroomTeacher                             Boolean        @default(true) @map("is_classroom_teacher")
+  levelTaught                                    String         @default("Licenciatura") @map("level_taught") @db.VarChar(45)
+  createdBy                                      Int            @map("created_by") @db.UnsignedInt
+  updatedBy                                      Int            @map("updated_by") @db.UnsignedInt
+  createdAt                                      DateTime       @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt                                      DateTime       @default(now()) @map("updated_at") @db.Timestamp(6)
+  users_staff_teaching_profile_created_byTousers User           @relation("staff_teaching_profile_created_byTousers", fields: [createdBy], references: [id], map: "fk_teaching_profile_created_by")
+  staff                                          Staff          @relation(fields: [staffId], references: [id], map: "fk_teaching_profile_staff")
+  users_staff_teaching_profile_updated_byTousers User           @relation("staff_teaching_profile_updated_byTousers", fields: [updatedBy], references: [id], map: "fk_teaching_profile_updated_by")
+  teaching_load                                  TeachingLoad[]
+
+  @@index([createdBy], map: "fk_teaching_profile_created_by_idx")
+  @@index([staffId], map: "fk_teaching_profile_staff_idx")
+  @@index([updatedBy], map: "fk_teaching_profile_updated_by_idx")
+  @@map("staff_teaching_profile")
+}
+
+model StaffType {
+  id        Int      @id @default(autoincrement()) @db.TinyInt
+  name      String   @db.VarChar(145)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt DateTime @default(now()) @map("updated_at") @db.Timestamp(0)
+  staff     Staff[]
+
+  @@map("staff_type")
+}
+
+model StudyPlan {
+  id                                  Int                @id @default(autoincrement()) @db.UnsignedInt
+  subjectKey                          Int                @unique(map: "uk_subject_key") @map("subject_key") @db.UnsignedInt
+  subjectName                         String             @map("subject_name") @db.VarChar(125)
+  displayOrder                        Int                @map("display_order") @db.UnsignedTinyInt
+  subjectTypeId                       Int                @map("subject_type_id") @db.UnsignedTinyInt
+  semesterId                          Int                @map("semester_id") @db.UnsignedTinyInt
+  weeklyHours                         Int                @map("weekly_hours") @db.UnsignedTinyInt
+  credits                             Float              @db.Float
+  trainingPathId                      Int                @map("training_path_id") @db.UnsignedTinyInt
+  educationalProgramId                Int                @map("educational_program_id") @db.UnsignedInt
+  createdAt                           DateTime           @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt                           DateTime           @default(now()) @map("updated_at") @db.Timestamp(0)
+  createdBy                           Int                @map("created_by") @db.UnsignedInt
+  updatedBy                           Int                @map("updated_by") @db.UnsignedInt
+  grades                              Grade[]
+  users_study_plans_created_byTousers User               @relation("study_plans_created_byTousers", fields: [createdBy], references: [id], map: "fk_study_plans_created_by")
+  educational_programs                EducationalProgram @relation(fields: [educationalProgramId], references: [id], map: "fk_study_plans_educational_program")
+  semesters                           Semester           @relation(fields: [semesterId], references: [id], map: "fk_study_plans_semester")
+  subject_types                       SubjectType        @relation(fields: [subjectTypeId], references: [id], map: "fk_study_plans_subject_type")
+  training_paths                      TrainingPath       @relation(fields: [trainingPathId], references: [id], map: "fk_study_plans_training_path")
+  users_study_plans_updated_byTousers User               @relation("study_plans_updated_byTousers", fields: [updatedBy], references: [id], map: "fk_study_plans_updated_by")
+  teaching_load                       TeachingLoad[]
+
+  @@index([createdBy], map: "fk_study_plans_created_by")
+  @@index([educationalProgramId], map: "fk_study_plans_educational_program")
+  @@index([semesterId], map: "fk_study_plans_semester")
+  @@index([subjectTypeId], map: "fk_study_plans_subject_type")
+  @@index([trainingPathId], map: "fk_study_plans_training_path")
+  @@index([updatedBy], map: "fk_study_plans_updated_by")
+  @@map("study_plans")
+}
+
+model SubjectType {
+  id          Int         @id @default(autoincrement()) @db.UnsignedTinyInt
+  name        String      @db.VarChar(45)
+  key         String      @unique(map: "key_UNIQUE") @db.VarChar(6)
+  isRequired  Boolean     @default(true) @map("is_required")
+  createdAt   DateTime    @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt   DateTime    @default(now()) @map("updated_at") @db.Timestamp(0)
+  study_plans StudyPlan[]
+
+  @@map("subject_types")
+}
+
+model Title {
+  id        Int       @id @default(autoincrement()) @db.UnsignedTinyInt
+  key       String    @unique(map: "key_UNIQUE") @db.VarChar(8)
+  createdAt DateTime? @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt DateTime? @default(now()) @map("updated_at") @db.Timestamp(0)
+  staff     Staff[]
+
+  @@map("titles")
+}
+
+model TrainingPath {
+  id               Int         @id @default(autoincrement()) @db.UnsignedTinyInt
+  trainingPathName String      @unique(map: "training_path_name_UNIQUE") @map("training_path_name") @db.VarChar(75)
+  trainingPathKey  String      @map("training_path_key") @db.VarChar(5)
+  displayOrder     Int         @map("display_order") @db.UnsignedTinyInt
+  createdAt        DateTime    @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt        DateTime    @default(now()) @map("updated_at") @db.Timestamp(0)
+  study_plans      StudyPlan[]
+
+  @@map("training_paths")
+}
+
+model WeeklyHour {
+  id                     Int                    @id @default(autoincrement()) @db.UnsignedTinyInt
+  hour_key               String                 @db.Char(11)
+  hour_type              String                 @default("Licenciatura presencial") @db.VarChar(30)
+  createdAt              DateTime               @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt              DateTime               @default(now()) @map("updated_at") @db.Timestamp(0)
+  teaching_load_schedule TeachingLoadSchedule[]
+
+  @@unique([hour_key, hour_type], map: "uq_hours_hour_key_type")
+  @@map("weekly_hours")
+}
+
+model Classroom {
+  id                     Int                    @id @default(autoincrement()) @db.UnsignedTinyInt
+  name                   String                 @unique(map: "uq_classrooms_name") @db.VarChar(25)
+  classroomKey           String                 @unique(map: "uq_classrooms_classroom_key") @map("classroom_key") @db.VarChar(5)
+  createdAt              DateTime               @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt              DateTime               @default(now()) @map("updated_at") @db.Timestamp(0)
+  teaching_load_schedule TeachingLoadSchedule[]
+
+  @@map("classrooms")
+}
+
+model TeachingLoad {
+  id                                    Int                    @id @default(autoincrement()) @db.UnsignedInt
+  staffTeachingProfileId                Int                    @map("staff_teaching_profile_id") @db.UnsignedInt
+  studyPlanId                           Int                    @map("study_plan_id") @db.UnsignedInt
+  classId                               Int                    @map("class_id") @db.UnsignedInt
+  createdBy                             Int                    @map("created_by") @db.UnsignedInt
+  updatedBy                             Int                    @map("updated_by") @db.UnsignedInt
+  createdAt                             DateTime               @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt                             DateTime               @default(now()) @map("updated_at") @db.Timestamp(6)
+  classes                               Class                  @relation(fields: [classId], references: [id], map: "fk_teaching_load_class")
+  users_teaching_load_created_byTousers User                   @relation("teaching_load_created_byTousers", fields: [createdBy], references: [id], map: "fk_teaching_load_created_by")
+  staff_teaching_profile                StaffTeachingProfile   @relation(fields: [staffTeachingProfileId], references: [id], map: "fk_teaching_load_profile")
+  study_plans                           StudyPlan              @relation(fields: [studyPlanId], references: [id], map: "fk_teaching_load_study_plan")
+  users_teaching_load_updated_byTousers User                   @relation("teaching_load_updated_byTousers", fields: [updatedBy], references: [id], map: "fk_teaching_load_updated_by")
+  teaching_load_schedule                TeachingLoadSchedule[]
+
+  @@unique([staffTeachingProfileId, studyPlanId, classId], map: "uq_teaching_load")
+  @@index([classId], map: "fk_teaching_load_class_idx")
+  @@index([createdBy], map: "fk_teaching_load_created_by_idx")
+  @@index([staffTeachingProfileId], map: "fk_teaching_load_profile_idx")
+  @@index([studyPlanId], map: "fk_teaching_load_study_plan_idx")
+  @@index([updatedBy], map: "fk_teaching_load_updated_by_idx")
+  @@map("teaching_load")
+}
+
+model TeachingLoadSchedule {
+  id                                             Int          @id @default(autoincrement()) @db.UnsignedInt
+  teachingLoadId                                 Int          @map("teaching_load_id") @db.UnsignedInt
+  dayId                                          Int          @map("day_id") @db.UnsignedTinyInt
+  hourId                                         Int          @map("hour_id") @db.UnsignedTinyInt
+  classroomId                                    Int          @map("classroom_id") @db.UnsignedTinyInt
+  createdBy                                      Int          @map("created_by") @db.UnsignedInt
+  updatedBy                                      Int          @map("updated_by") @db.UnsignedInt
+  createdAt                                      DateTime     @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt                                      DateTime     @default(now()) @map("updated_at") @db.Timestamp(6)
+  classrooms                                     Classroom    @relation(fields: [classroomId], references: [id], map: "fk_tls_classroom")
+  users_teaching_load_schedule_created_byTousers User         @relation("teaching_load_schedule_created_byTousers", fields: [createdBy], references: [id], map: "fk_tls_created_by")
+  week_days                                      WeekDay      @relation(fields: [dayId], references: [id], map: "fk_tls_day")
+  weekly_hours                                   WeeklyHour   @relation(fields: [hourId], references: [id], map: "fk_tls_hour")
+  teaching_load                                  TeachingLoad @relation(fields: [teachingLoadId], references: [id], map: "fk_tls_teaching_load")
+  users_teaching_load_schedule_updated_byTousers User         @relation("teaching_load_schedule_updated_byTousers", fields: [updatedBy], references: [id], map: "fk_tls_updated_by")
+
+  @@unique([teachingLoadId, dayId, hourId], map: "uq_teaching_load_schedule")
+  @@index([classroomId], map: "fk_tls_classroom_idx")
+  @@index([createdBy], map: "fk_tls_created_by_idx")
+  @@index([dayId], map: "fk_tls_day_idx")
+  @@index([hourId], map: "fk_tls_hour_idx")
+  @@index([teachingLoadId], map: "fk_tls_teaching_load_idx")
+  @@index([updatedBy], map: "fk_tls_updated_by_idx")
+  @@map("teaching_load_schedule")
+}
+
+model WeekDay {
+  id                     Int                    @id @default(autoincrement()) @db.UnsignedTinyInt
+  dayKey                 String                 @unique(map: "uq_weekdays_weekday_key") @map("day_key") @db.VarChar(10)
+  sortOrder              Int                    @unique(map: "uq_weekdays_sort_order") @map("sort_order") @db.TinyInt
+  createdAt              DateTime               @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt              DateTime               @default(now()) @map("updated_at") @db.Timestamp(0)
+  teaching_load_schedule TeachingLoadSchedule[]
+
+  @@map("week_days")
+}
+
+model Grade {
+  id                             Int        @id @default(autoincrement()) @db.UnsignedInt
+  enrollmentId                   Int        @map("enrollment_id") @db.UnsignedInt
+  subjectId                      Int        @map("subject_id") @db.UnsignedInt
+  grade                          Int        @db.UnsignedTinyInt
+  type                           String     @default("CS") @db.VarChar(2)
+  temporality                    String     @default("FINAL") @db.VarChar(10)
+  opportunity                    Int        @default(0) @db.UnsignedTinyInt
+  createdBy                      Int        @map("created_by") @db.UnsignedInt
+  updatedBy                      Int        @map("updated_by") @db.UnsignedInt
+  createdAt                      DateTime   @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt                      DateTime   @default(now()) @map("updated_at") @db.Timestamp(0)
+  users_grades_created_byTousers User       @relation("grades_created_byTousers", fields: [createdBy], references: [id], map: "fk_grades_created_by")
+  enrollments                    Enrollment @relation(fields: [enrollmentId], references: [id], map: "fk_grades_enrollment")
+  study_plans                    StudyPlan  @relation(fields: [subjectId], references: [id], map: "fk_grades_study_plan")
+  users_grades_updated_byTousers User       @relation("grades_updated_byTousers", fields: [updatedBy], references: [id], map: "fk_grades_updated_by")
+
+  @@unique([enrollmentId, subjectId, opportunity], map: "uk_grade")
+  @@index([createdBy], map: "fk_grades_created_by_idx")
+  @@index([enrollmentId], map: "fk_grades_enrollment_idx")
+  @@index([updatedBy], map: "fk_grades_updated_by_idx")
+  @@index([subjectId], map: "fk_grades_subject_idx")
+  @@map("grades")
+}
+
+model StudentWithdrawal {
+  id                                          Int              @id @default(autoincrement()) @db.UnsignedInt
+  enrollmentId                                Int              @unique(map: "uq_student_withdrawals_enrollment") @map("enrollment_id") @db.UnsignedInt
+  studentStatusId                             Int              @map("student_status_id") @db.UnsignedTinyInt
+  withdrawalReasonId                          Int              @default(1) @map("withdrawal_reason_id") @db.UnsignedTinyInt
+  withdrawalDate                              DateTime?        @map("withdrawal_date") @db.Date
+  createdBy                                   Int              @map("created_by") @db.UnsignedInt
+  updatedBy                                   Int              @map("updated_by") @db.UnsignedInt
+  createdAt                                   DateTime         @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt                                   DateTime         @default(now()) @map("updated_at") @db.Timestamp(6)
+  users_student_withdrawals_created_byTousers User             @relation("student_withdrawals_created_byTousers", fields: [createdBy], references: [id], map: "fk_withdrawals_created_by")
+  enrollments                                 Enrollment       @relation(fields: [enrollmentId], references: [id], map: "fk_withdrawals_enrollment")
+  withdrawal_reasons                          WithdrawalReason @relation(fields: [withdrawalReasonId], references: [id], map: "fk_withdrawals_reason")
+  student_status                              StudentStatus    @relation(fields: [studentStatusId], references: [id], map: "fk_withdrawals_status")
+  users_student_withdrawals_updated_byTousers User             @relation("student_withdrawals_updated_byTousers", fields: [updatedBy], references: [id], map: "fk_withdrawals_updated_by")
+
+  @@index([createdBy], map: "fk_withdrawals_created_by_idx")
+  @@index([enrollmentId], map: "fk_withdrawals_enrollment_idx")
+  @@index([withdrawalReasonId], map: "fk_withdrawals_reason_idx")
+  @@index([studentStatusId], map: "fk_withdrawals_status_idx")
+  @@index([updatedBy], map: "fk_withdrawals_updated_by_idx")
+  @@map("student_withdrawals")
+}
+
+model WithdrawalReason {
+  id                  Int                 @id @default(autoincrement()) @db.UnsignedTinyInt
+  reason              String              @unique(map: "uq_withdrawal_reasons_reason") @db.VarChar(150)
+  createdAt           DateTime            @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt           DateTime            @default(now()) @map("updated_at") @db.Timestamp(6)
+  student_withdrawals StudentWithdrawal[]
+
+  @@map("withdrawal_reasons")
+}
+
+model StaffStatus {
+  id        Int      @id @default(autoincrement()) @db.UnsignedTinyInt
+  name      String   @unique(map: "name_UNIQUE") @db.VarChar(25)
+  isActive  Boolean  @map("is_active")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt DateTime @default(now()) @map("updated_at") @db.Timestamp(0)
+  staff     Staff[]
+
+  @@map("staff_status")
+}
+
+view ViewAddress {
+  id               Int     @unique @default(0)
+  streetType       String  @map("street_type") @db.VarChar(10)
+  street           String  @db.VarChar(45)
+  exteriorNumber   String  @default("") @map("exterior_number") @db.VarChar(20)
+  interiorNumber   String  @default("") @map("interior_number") @db.VarChar(20)
+  block            String  @default("") @db.VarChar(20)
+  betweenStreets   String  @default("") @map("between_streets") @db.VarChar(90)
+  curp             String  @unique @db.Char(18)
+  fullName         String  @default("") @map("full_name") @db.VarChar(97)
+  zipCode          String  @map("zip_code") @db.Char(5)
+  settlement       String  @db.VarChar(125)
+  settlementType   String  @map("settlement_type") @db.VarChar(15)
+  locality         String  @default("") @db.VarChar(125)
+  municipalityName String  @map("municipality_name") @db.VarChar(100)
+  municipalCapital String  @map("municipal_capital") @db.VarChar(100)
+  municipalityId   Int     @default(0) @map("municipality_id") @db.UnsignedInt
+  stateId          Int     @default(0) @map("state_id") @db.UnsignedTinyInt
+  stateName        String  @map("state_name") @db.VarChar(45)
+  fullAddress      String? @map("full_address") @db.Text
+
+  @@map("view_addresses")
+}
+
+view ViewPerson {
+  id                Int      @unique @default(0) @db.UnsignedInt
+  curp              String   @unique @db.Char(18)
+  firstName         String   @map("first_name") @db.VarChar(45)
+  firstLastName     String   @map("first_last_name") @db.VarChar(25)
+  secondLastName    String   @default("") @map("second_last_name") @db.VarChar(25)
+  fullName          String?  @map("full_name") @db.VarChar(97)
+  gender            String   @default("") @db.VarChar(15)
+  birthDate         DateTime @map("birth_date") @db.Date
+  age               Int?
+  nationality       String   @default("") @db.VarChar(15)
+  birthState        String   @default("") @map("birth_state") @db.VarChar(45)
+  municipalityId    String?  @map("municipality_id") @db.VarChar(15)
+  birthMunicipality String   @default("") @map("birth_municipality") @db.VarChar(100)
+  personalPhone     String   @default("") @map("personal_phone") @db.VarChar(15)
+  personalEmail     String   @unique @default("") @map("personal_email") @db.VarChar(90)
+  rfc               String?  @unique @db.VarChar(15)
+
+  @@map("view_persons")
+}
+
+view ViewUser {
+  id                  Int       @unique @default(0) @db.UnsignedInt
+  username            String    @unique @db.VarChar(125)
+  password            String    @db.VarChar(255)
+  firstName           String    @map("first_name") @db.VarChar(45)
+  firstLastName       String    @map("first_last_name") @db.VarChar(25)
+  secondLastName      String    @default("") @map("second_last_name") @db.VarChar(25)
+  fullName            String    @default("") @map("full_name") @db.VarChar(97)
+  isActive            Boolean   @default(true) @map("is_active")
+  isFirstLogin        Boolean   @default(true) @map("is_first_login")
+  loginAttempts       Int       @default(0) @map("login_attempts")
+  lockedUntil         DateTime? @map("locked_until") @db.DateTime(0)
+  photoUrl            String?   @map("photo_url") @db.VarChar(255)
+  roleId              Int       @default(0) @map("role_id") @db.UnsignedInt
+  roleName            String    @map("role_name") @db.VarChar(50)
+  roleDescription     String    @map("role_description") @db.VarChar(250)
+  userTypeId          Int       @default(0) @map("user_type_id") @db.UnsignedTinyInt
+  userTypeCode        String    @map("user_type_code") @db.VarChar(20)
+  userTypeName        String    @map("user_type_name") @db.VarChar(60)
+  userTypeDescription String?   @map("user_type_description") @db.VarChar(255)
+
+  @@map("view_users")
+}
+
+view ViewZipCode {
+  id               Int                      @unique @default(0)
+  zipCode          String                   @map("zip_code") @db.Char(5)
+  settlement       String                   @db.VarChar(125)
+  settlementType   String                   @map("settlement_type") @db.VarChar(25)
+  abbreviation     String                   @db.VarChar(15)
+  locality         String                   @default("") @db.VarChar(125)
+  zoneType         view_zip_codes_zone_type @map("zone_type")
+  municipality     String                   @db.VarChar(100)
+  municipalCapital String                   @map("municipal_capital") @db.VarChar(100)
+  municipalityId   Int                      @default(0) @map("municipality_id") @db.UnsignedInt
+  stateId          Int                      @default(0) @map("state_id") @db.UnsignedTinyInt
+  stateName        String                   @map("state_name") @db.VarChar(45)
+
+  @@map("view_zip_codes")
+}
+
+view ViewSchoolOfOrigin {
+  id               Int    @unique @default(0) @db.UnsignedInt
+  cct              String @unique @db.VarChar(15)
+  schoolName       String @unique @map("school_name") @db.VarChar(150)
+  fundingSource    String @default("No especificado") @map("funding_source") @db.VarChar(30)
+  educationLevel   String @map("education_level") @db.VarChar(45)
+  municipalityName String @map("municipality_name") @db.VarChar(100)
+  stateName        String @map("state_name") @db.VarChar(45)
+
+  @@map("view_schools_of_origin")
+}
+
+view ViewDemographic {
+  id                 Int     @unique @default(0) @db.UnsignedInt
+  personId           Int     @unique @default(0) @map("person_id") @db.UnsignedInt
+  curp               String  @unique @db.Char(18)
+  fullName           String? @map("full_name") @db.VarChar(97)
+  firstName          String  @map("first_name") @db.VarChar(45)
+  firstLastName      String  @map("first_last_name") @db.VarChar(25)
+  secondLastName     String  @default("") @map("second_last_name") @db.VarChar(25)
+  gender             String  @db.Char(1)
+  age                Int?
+  maritalStatus      String? @map("marital_status") @db.VarChar(25)
+  indigenousLanguage String? @map("indigenous_language") @db.VarChar(70)
+  foreignLanguage    String? @map("foreign_language") @db.VarChar(50)
+  specialCondition   String? @map("special_condition") @db.VarChar(100)
+  isIndigenous       Boolean @default(false) @map("is_indigenous")
+  isAfroDescendant   Boolean @default(false) @map("is_afro_descendant")
+
+  @@map("view_demographics")
+}
+
+view ViewEmergencyContact {
+  id           Int     @unique @default(0) @db.UnsignedInt
+  personId     Int     @unique @default(0) @map("person_id") @db.UnsignedInt
+  personCurp   String  @unique @map("person_curp") @db.Char(18)
+  personName   String  @default("") @map("person_name") @db.VarChar(97)
+  contactName  String  @default("No Especificado") @map("contact_name") @db.VarChar(125)
+  contactPhone String  @map("contact_phone") @db.VarChar(10)
+  relationship String? @db.VarChar(50)
+
+  @@map("view_emergency_contacts")
+}
+
+/// This view or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+view ViewStudentAcademicBackground {
+  id                  Int     @unique @default(0) @db.UnsignedInt
+  studentId           Int     @map("student_id") @db.UnsignedInt
+  studentFullName     String  @default("") @map("student_full_name") @db.VarChar(97)
+  studentCurp         String  @map("student_curp") @db.Char(18)
+  studentCode         String? @unique @map("student_code") @db.VarChar(25)
+  average             Decimal @default(0.00) @db.Decimal(4, 2)
+  schoolCct           String? @map("school_cct") @db.VarChar(15)
+  schoolName          String? @map("school_name") @db.VarChar(150)
+  schoolFundingSource String? @default("No especificado") @map("school_funding_source") @db.VarChar(30)
+  schoolOfferedLevel  String? @map("school_offered_level") @db.VarChar(45)
+  schoolMunicipality  String? @map("school_municipality") @db.VarChar(100)
+  schoolState         String? @map("school_state") @db.VarChar(45)
+  professionalDegree  String  @map("professional_degree") @db.VarChar(150)
+
+  @@map("view_student_academic_backgrounds")
+}
+
+view ViewStudent {
+  id                 Int     @unique @default(0) @db.UnsignedInt
+  personId           Int     @default(0) @map("person_id") @db.UnsignedInt
+  fullName           String? @map("full_name") @db.VarChar(97)
+  firstName          String  @map("first_name") @db.VarChar(45)
+  firstLastName      String  @map("first_last_name") @db.VarChar(25)
+  secondLastName     String  @default("") @map("second_last_name") @db.VarChar(25)
+  curp               String  @db.Char(18)
+  gender             String  @default("") @db.VarChar(15)
+  age                Int?
+  personalPhone      String  @default("") @map("personal_phone") @db.VarChar(15)
+  birthState         String  @default("") @map("birth_state") @db.VarChar(45)
+  birthMunicipality  String  @default("") @map("birth_municipality") @db.VarChar(100)
+  studentCode        String? @unique @map("student_code") @db.VarChar(25)
+  institutionalMail  String? @map("institutional_mail") @db.VarChar(125)
+  educationalProgram String? @map("educational_program") @db.VarChar(125)
+  programCode        String? @map("program_code") @db.Char(6)
+  studyPlan          String? @map("study_plan") @db.Char(4)
+  academicDiscipline String? @map("academic_discipline") @db.VarChar(45)
+  educationLevel     String? @map("education_level") @db.VarChar(45)
+  modality           String? @db.VarChar(50)
+  generation         Int?    @db.TinyInt
+  educationCycle     String? @map("education_cycle") @db.VarChar(10)
+  statusDescription  String  @default("") @map("status_description") @db.VarChar(25)
+  statusKey          String? @map("status_key") @db.Char(2)
+  isActive           Int     @default(0) @map("is_active")
+  currentSemester    Int     @default(0) @map("current_semester")
+
+  @@map("view_students")
+}
+
+view ViewClass {
+  id                     Int    @unique @default(0) @db.UnsignedInt
+  classCode              String @unique @db.Char(11)
+  group                  String @default("Único") @db.VarChar(6)
+  shift                  String @default("Matutino") @db.VarChar(12)
+  elective               String @default("No aplica") @db.VarChar(125)
+  schoolYear             String @db.Char(9)
+  semiannualPeriod       String @db.VarChar(30)
+  semester               Int    @db.UnsignedTinyInt
+  educationalProgramCode String @db.Char(6)
+  educationalProgram     String @db.VarChar(125)
+  studyPlan              String @db.Char(4)
+  academicDiscipline     String @db.VarChar(45)
+  educationLevel         String @db.VarChar(45)
+  modality               String @db.VarChar(50)
+
+  @@map("view_classes")
+}
+
+view ViewEnrollment {
+  id                 Int      @unique @default(0) @db.UnsignedInt
+  studentId          Int      @default(0) @db.UnsignedInt
+  curp               String   @db.Char(18)
+  studentNumber      String?  @unique @db.VarChar(25)
+  firstName          String   @db.VarChar(45)
+  firstLastName      String   @db.VarChar(25)
+  secondLastName     String   @default("") @db.VarChar(25)
+  fullName           String?  @db.VarChar(97)
+  gender             String   @db.Char(1)
+  classCode          String   @db.Char(11)
+  listNumber         Int      @default(0) @db.TinyInt
+  semester           Int      @db.UnsignedTinyInt
+  schoolYear         String   @db.Char(9)
+  semiannualPeriod   String   @db.VarChar(30)
+  educationalProgram String   @db.VarChar(125)
+  academicDiscipline String   @db.VarChar(45)
+  educationLevel     String   @db.VarChar(45)
+  enrollmentDate     DateTime @default(dbgenerated("(curdate())")) @db.Date
+
+  @@map("view_enrollments")
+}
+
+view ViewStaff {
+  id                     Int       @unique @default(0) @db.UnsignedInt
+  curp                   String?   @db.Char(18)
+  firstName              String?   @db.VarChar(45)
+  firstLastName          String?   @db.VarChar(25)
+  secondLastName         String?   @default("") @db.VarChar(25)
+  fullName               String?   @db.VarChar(97)
+  gender                 String?   @db.Char(1)
+  birthDate              DateTime? @db.Date
+  employeeAge            Int?
+  institutionalMail      String    @default("") @db.VarChar(100)
+  paymentUniqueKey       String    @default("No especificado") @db.VarChar(45)
+  systemEntryDate        String    @default("") @db.VarChar(15)
+  schoolEntryDate        String    @default("") @db.VarChar(15)
+  systemYears            String?   @db.VarChar(21)
+  schoolYears            String?   @db.VarChar(21)
+  staffTypeName          String?   @db.VarChar(145)
+  employmentTypeName     String?   @db.VarChar(45)
+  employmentDurationName String?   @db.VarChar(45)
+  responsibilityName     String?   @db.VarChar(45)
+  categoryName           String?   @db.VarChar(150)
+  titleKey               String?   @db.VarChar(8)
+  staffStatus            String?   @db.VarChar(25)
+  isActive               Boolean?
+  personId               Int       @db.UnsignedInt
+  staffTypeId            Int       @db.TinyInt
+  employmentTypeId       Int       @db.UnsignedTinyInt
+  employmentDurationId   Int       @db.UnsignedTinyInt
+  responsibilityId       Int       @db.UnsignedTinyInt
+  categoryId             Int       @default(1) @db.UnsignedSmallInt
+
+  @@map("view_staff")
+}
+
+view ViewStaffAcademicProfile {
+  id               Int     @unique @default(0) @db.UnsignedInt
+  curp             String? @unique @db.Char(18)
+  firstName        String? @db.VarChar(45)
+  firstLastName    String? @db.VarChar(25)
+  secondLastName   String? @default("") @db.VarChar(25)
+  fullName         String? @db.VarChar(97)
+  educationLevel   String? @db.VarChar(45)
+  isGraduate       Boolean @default(false)
+  graduationDate   String  @default("") @db.VarChar(15)
+  schoolOfOrigin   String  @default("") @db.VarChar(150)
+  fundingSource    String  @default("") @db.VarChar(30)
+  knowledgeArea    String? @db.VarChar(100)
+  discipline       String? @db.VarChar(100)
+  sniLevel         String  @default("No aplica") @db.VarChar(20)
+  researchProject  String  @default("Ninguno") @db.VarChar(100)
+  thesisTopic      String  @default("Ninguno") @db.VarChar(150)
+  hasDoneStay      Boolean @default(false)
+  staffId          Int     @db.UnsignedInt
+  educationLevelId Int     @db.UnsignedTinyInt
+  schoolOfOriginId String  @default("") @db.VarChar(11)
+  knowledgeAreaId  Int     @default(1) @db.UnsignedTinyInt
+  disciplineId     Int     @default(1) @db.UnsignedTinyInt
+
+  @@map("view_staff_academic_profile")
+}
+
+view ViewStaffTeachingProfile {
+  id                 Int     @unique @default(0) @db.UnsignedInt
+  curp               String? @unique @db.Char(18)
+  gender             String? @db.Char(1)
+  firstName          String? @db.VarChar(45)
+  firstLastName      String? @db.VarChar(25)
+  secondLastName     String? @default("") @db.VarChar(25)
+  titleKey           String? @default("C.") @db.VarChar(8)
+  fullName           String? @db.VarChar(97)
+  isClassroomTeacher Boolean @default(true)
+  levelTaught        String  @default("Licenciatura") @db.VarChar(45)
+  staffId            Int     @db.UnsignedInt
+
+  @@map("view_staff_teaching_profile")
+}
+
+view ViewStaffComplete {
+  id                   Int       @unique @default(0) @db.UnsignedInt
+  personId             Int       @db.UnsignedInt
+  curp                 String?   @db.Char(18)
+  firstName            String?   @db.VarChar(45)
+  firstLastName        String?   @db.VarChar(25)
+  secondLastName       String?   @default("") @db.VarChar(25)
+  fullName             String?   @db.VarChar(97)
+  gender               String?   @db.Char(1)
+  birthDate            DateTime? @db.Date
+  employeeAge          Int?
+  institutionalMail    String    @default("") @db.VarChar(100)
+  paymentUniqueKey     String    @default("No especificado") @db.VarChar(45)
+  systemEntryDate      String    @default("") @db.VarChar(15)
+  schoolEntryDate      String    @default("") @db.VarChar(15)
+  isActive             Boolean?
+  staffStatus          String?   @db.VarChar(25)
+  systemYears          String?   @db.VarChar(21)
+  schoolYears          String?   @db.VarChar(21)
+  staffType            String?   @db.VarChar(145)
+  employmentType       String?   @db.VarChar(45)
+  employmentDuration   String?   @db.VarChar(45)
+  responsibility       String?   @db.VarChar(45)
+  category             String?   @db.VarChar(150)
+  titleKey             String?   @db.VarChar(8)
+  staffTypeId          Int       @db.TinyInt
+  employmentTypeId     Int       @db.UnsignedTinyInt
+  employmentDurationId Int       @db.UnsignedTinyInt
+  responsibilityId     Int       @db.UnsignedTinyInt
+  categoryId           Int       @default(1) @db.UnsignedSmallInt
+  educationLevel       String?   @db.VarChar(45)
+  isGraduate           Boolean?  @default(false)
+  graduationDate       String?   @default("") @db.VarChar(15)
+  schoolOfOrigin       String?   @default("") @db.VarChar(150)
+  fundingSource        String?   @default("") @db.VarChar(30)
+  knowledgeArea        String?   @db.VarChar(100)
+  discipline           String?   @db.VarChar(100)
+  sniLevel             String?   @default("No aplica") @db.VarChar(20)
+  researchProject      String?   @default("Ninguno") @db.VarChar(100)
+  thesisTopic          String?   @default("Ninguno") @db.VarChar(150)
+  hasDoneStay          Boolean?  @default(false)
+  educationLevelId     Int?      @db.UnsignedTinyInt
+  schoolOfOriginId     String?   @default("") @db.VarChar(11)
+  knowledgeAreaId      Int?      @default(1) @db.UnsignedTinyInt
+  disciplineId         Int?      @default(1) @db.UnsignedTinyInt
+
+  @@map("view_staff_complete")
+}
+
+view ViewEducationalProgram {
+  id                    Int     @unique @default(0) @db.UnsignedInt
+  code                  String  @db.Char(6)
+  epKey                 String  @db.VarChar(12)
+  subesKey              String  @db.VarChar(12)
+  name                  String  @db.VarChar(125)
+  studyPlan             String  @db.Char(4)
+  credits               Decimal @default(0.00) @db.Decimal(5, 2)
+  modality              String? @db.VarChar(50)
+  academicDiscipline    String? @db.VarChar(45)
+  offeredEducationLevel String? @db.VarChar(45)
+  academicDisciplineId  Int     @db.UnsignedTinyInt
+  modalityId            Int     @db.UnsignedTinyInt
+  schoolOfferedLevelId  Int?    @default(3) @db.UnsignedTinyInt
+
+  @@map("view_educational_programs")
+}
+
+view ViewTeachingLoad {
+  id                     Int     @unique @default(0) @db.UnsignedInt
+  classKey               String? @db.Char(11)
+  subjectName            String? @db.VarChar(125)
+  curp                   String? @db.Char(18)
+  titleKey               String? @default("C.") @db.VarChar(8)
+  fullName               String? @db.VarChar(97)
+  gender                 String? @db.Char(1)
+  subjectId              Int?    @default(0) @db.UnsignedInt
+  staffTeachingProfileId Int     @db.UnsignedInt
+  studyPlanId            Int     @db.UnsignedInt
+  classId                Int     @db.UnsignedInt
+
+  @@map("view_teaching_load")
+}
+
+view ViewTeachingLoadSchedule {
+  id                    Int     @unique @default(0) @db.UnsignedInt
+  fullName              String? @db.VarChar(97)
+  curp                  String? @db.Char(18)
+  titleKey              String? @default("C.") @db.VarChar(8)
+  gender                String? @db.Char(1)
+  subjectName           String? @db.VarChar(125)
+  subjectKey            Int?    @db.UnsignedInt
+  classKey              String? @db.Char(11)
+  subjectOrder          Int?    @db.UnsignedTinyInt
+  semester              Int?    @db.UnsignedTinyInt
+  day                   String? @db.VarChar(10)
+  dayOrder              Int?    @db.TinyInt
+  hour                  String? @db.Char(11)
+  group                 String? @default("Único") @db.VarChar(6)
+  shift                 String? @default("Matutino") @db.VarChar(12)
+  classroomName         String? @db.VarChar(25)
+  classroomKey          String? @db.VarChar(5)
+  modality              String? @db.VarChar(50)
+  academicDiscipline    String? @db.VarChar(45)
+  offeredEducationLevel String? @db.VarChar(45)
+  schoolYear            String? @db.Char(9)
+  semiannualPeriod      String? @db.VarChar(30)
+  educationalProgram    String? @db.VarChar(125)
+  subjectId             Int?    @default(0) @db.UnsignedInt
+  teachingLoadId        Int     @db.UnsignedInt
+  dayId                 Int     @db.UnsignedTinyInt
+  hourId                Int     @db.UnsignedTinyInt
+  classroomId           Int     @db.UnsignedTinyInt
+  studyPlanId           Int?    @db.UnsignedInt
+  educationalProgramId  Int?    @db.UnsignedInt
+
+  @@map("view_teaching_load_schedule")
+}
+
+view ViewGrade {
+  id           Int      @unique @default(0) @db.UnsignedInt
+  grade        Int      @db.UnsignedTinyInt
+  type         String   @default("CS") @db.VarChar(2)
+  temporality  String   @default("FINAL") @db.VarChar(10)
+  opportunity  Int      @default(0) @db.UnsignedTinyInt
+  curp         String?  @db.Char(18)
+  fullName     String?  @default("") @db.VarChar(97)
+  gender       String?  @default("") @db.VarChar(15)
+  studentCode  String?  @db.VarChar(25)
+  classCode    String?  @db.Char(11)
+  subjectName  String?  @db.VarChar(125)
+  enrollmentId Int      @db.UnsignedInt
+  subjectId    Int      @db.UnsignedInt
+  classId      Int?     @db.UnsignedInt
+  createdAt    DateTime @default(now()) @db.Timestamp(0)
+  updatedAt    DateTime @default(now()) @db.Timestamp(0)
+
+  @@map("view_grades")
+}
+
+view ViewFailedSubject {
+  id                       Int      @unique @default(0) @db.UnsignedInt
+  enrollmentId             Int      @db.UnsignedInt
+  opportunity              Int      @default(0) @db.UnsignedTinyInt
+  grade                    Int      @db.UnsignedTinyInt
+  type                     String   @default("CS") @db.VarChar(2)
+  temporality              String   @default("FINAL") @db.VarChar(10)
+  subjectId                Int      @default(0) @db.UnsignedInt
+  subjectName              String   @db.VarChar(125)
+  subjectKey               Int      @db.UnsignedInt
+  studentId                Int      @default(0) @db.UnsignedInt
+  curp                     String   @db.Char(18)
+  fullName                 String   @default("") @db.VarChar(97)
+  gender                   String   @db.Char(1)
+  studentCode              String?  @db.VarChar(25)
+  classCode                String   @db.Char(11)
+  semester                 Int      @db.UnsignedTinyInt
+  schoolYear               String   @db.Char(9)
+  educationalProgram       String   @db.VarChar(125)
+  failedSubjectsCount      Decimal? @db.Decimal(23, 0)
+  currentOpportunity       Int?     @db.UnsignedTinyInt
+  canTakeExtraordinary     Int      @default(0)
+  canTakeSecondOpportunity Int      @default(0)
+  isDropoutCandidate       Int      @default(0)
+
+  @@map("view_failed_subjects")
+}
+
+view view_report_card {
+  curp               String? @db.Char(18)
+  fullName           String? @default("") @db.VarChar(97)
+  studentCode        String? @db.VarChar(25)
+  classCode          String? @db.Char(11)
+  group              String? @default("Único") @db.VarChar(6)
+  shift              String? @default("Matutino") @db.VarChar(12)
+  subjectName        String? @db.VarChar(125)
+  subjectId          Int     @db.UnsignedInt
+  semester           Int?    @db.UnsignedTinyInt
+  finalGrade         Int     @db.UnsignedTinyInt
+  opportunity        Int     @default(0) @db.UnsignedTinyInt
+  teacherName        String? @db.VarChar(97)
+  teacherTitle       String? @default("C.") @db.VarChar(8)
+  teacherGender      String? @db.Char(1)
+  educationalProgram String? @db.VarChar(125)
+  studyPlan          String? @db.Char(4)
+  semiannualPeriod   String? @db.VarChar(30)
+  schoolYear         String? @db.Char(9)
+}
+
+view ViewStudentWithdrawal {
+  id                 Int       @unique @default(0) @db.UnsignedInt
+  dropoutDate        DateTime? @db.Date
+  studentStatusKey   String?   @db.Char(2)
+  studentStatus      String?   @db.VarChar(25)
+  studentCode        String?   @unique @db.VarChar(25)
+  studentFullName    String?   @default("") @db.VarChar(97)
+  studentCurp        String?   @unique @db.Char(18)
+  classCode          String?   @db.Char(11)
+  semiannualPeriod   String?   @db.VarChar(30)
+  semester           Int?      @db.UnsignedTinyInt
+  educationLevel     String?   @db.VarChar(45)
+  educationalProgram String?   @db.VarChar(125)
+  academicDiscipline String?   @db.VarChar(45)
+  reasonForDropout   String?   @db.VarChar(150)
+  enrollmentId       Int       @db.UnsignedInt
+  studentStatusId    Int       @db.UnsignedTinyInt
+  withdrawalReasonId Int       @default(1) @db.UnsignedTinyInt
+  createdAt          DateTime  @default(now()) @db.Timestamp(6)
+  updatedAt          DateTime  @default(now()) @db.Timestamp(6)
+
+  @@map("view_student_withdrawals")
+}
+
+enum zip_codes_zone_type {
+  Urbano
+  Rural
+}
+
+enum semiannual_periods_period_type {
+  regular
+  extraordinario
+}
+
+enum view_zip_codes_zone_type {
+  Urbano
+  Rural
+}

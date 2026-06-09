@@ -1,0 +1,194 @@
+{
+  "editor.fontSize": 16,
+  "editor.wordWrap": "on",
+  "editor.tabSize": 2,
+  "editor.insertSpaces": true,
+  "dotenv.enableAutocloaking": false,
+  "cSpell.words": [
+    "ÁÉÍÓÚÜÑáéíóúüñ",
+    "atomicidad",
+    "autoincrement",
+    "capturista",
+    "Capturista",
+    "curp",
+    "datasource",
+    "desestructuración",
+    "Destructura",
+    "Destructurar",
+    "dinámicamente",
+    "dtos",
+    "Dtos",
+    "encriptación",
+    "FIELDMAP",
+    "fileload",
+    "fullname",
+    "hashea",
+    "hasheada",
+    "hasheamos",
+    "Hasheamos",
+    "homoclave",
+    "impórtalo",
+    "inegi",
+    "Instantiator",
+    "manejador",
+    "mysql",
+    "nestjs",
+    "nodenext",
+    "originalname",
+    "paginación",
+    "pasarle",
+    "qwik",
+    "reasignación",
+    "reassigner",
+    "refactorizados",
+    "Resetear",
+    "sices",
+    "SICES",
+    "sicoes",
+    "Telesecundaria",
+    "tinyint",
+    "tipado",
+    "Tipamos",
+    "uploadfile",
+    "zipcode",
+    "Zipcode"
+  ],
+  "editor.codeActionsOnSave": {
+    "source.organizeImports.biome": "explicit",
+    "source.fixAll.biome": "explicit"
+  },
+
+  "material-icon-theme.activeIconPack": "nest",
+  "postman.settings.dotenv-detection-notification-visibility": false,
+
+  "tsimporter.filesToScan": ["api/**/*.ts", "api/**/*.tsx", "api/**/*.vue"],
+
+  "exportall.config.namedExports": true,
+  "exportall.config.includeFoldersToExport": true,
+  "better-comments.tags": [
+    {
+      "tag": "!",
+      "color": "#FF2D00",
+      "strikethrough": false,
+      "underline": false,
+      "backgroundColor": "transparent",
+      "bold": false,
+      "italic": false
+    },
+    {
+      "tag": "?",
+      "color": "#3498DB",
+      "strikethrough": false,
+      "underline": false,
+      "backgroundColor": "transparent",
+      "bold": false,
+      "italic": false
+    },
+    {
+      "tag": "//",
+      "color": "#474747",
+      "strikethrough": true,
+      "underline": false,
+      "backgroundColor": "transparent",
+      "bold": false,
+      "italic": false
+    },
+    {
+      "tag": "todo",
+      "color": "#FF8C00",
+      "strikethrough": false,
+      "underline": false,
+      "backgroundColor": "transparent",
+      "bold": false,
+      "italic": false
+    },
+    {
+      "tag": "*",
+      "color": "#98C379",
+      "strikethrough": false,
+      "underline": false,
+      "backgroundColor": "transparent",
+      "bold": false,
+      "italic": false
+    }
+  ],
+  "exportall.config.folderListener": [
+    "/api/src/common/helpers/http-request-functions",
+    "/api/src/common/helpers",
+    "/api/src/common/helpers/prisma",
+    "/api/src/common/types",
+    "/api/src/auth/decorators",
+    "/api/src/auth/interfaces",
+    "/api/src/common/constants",
+    "/api/src/common/interfaces",
+    "/api/src/common/services",
+    "/api/src/common/prisma",
+    "/api/src/common",
+    "/api/src/users/dto",
+    "/api/src/persons/dto",
+    "/api/src/common/interceptors",
+    "/api/src/addresses/dto",
+    "/api/src/scd/dto",
+    "/api/src/students/dto",
+    "/api/src/common/decorators",
+    "/api/src/common/dtos",
+    "/api/src/classes/dto",
+    "/api/src/student_enrollments/dto",
+    "/api/src/student_enrollments/utils",
+    "/api/src/student_dropouts/dto",
+    "/api/src/config",
+    "/api/src/auth/dto",
+    "/api/src/prisma",
+    "/api/src/auth",
+    "/api/src/common/utils",
+    "/api/src/common/pipes",
+    "/api/src/common/decorators/validators",
+    "/api/src/auth/guards",
+    "/api/src/zip-codes/dto",
+    "/api/src/schools-of-origin/dto",
+    "/api/src/demographics/dto",
+    "/api/src/emergency-contacts/dto",
+    "/api/src/student-academic-backgrounds/dto",
+    "/api/src/common/dtos/base",
+    "/api/src/common/dtos/queries",
+    "/api/src/enrollments/dto",
+    "/api/src/staff/dto",
+    "/api/src/teaching-load/dto",
+    "/api/src/grades/dto"
+  ],
+
+  // Biome Configuration for Root Workspace (nested app in /api)
+  "biome.lsp.bin": "api/node_modules/@biomejs/cli-win32-x64/biome.exe",
+  "biome.lspBin": "api/node_modules/@biomejs/cli-win32-x64/biome.exe",
+  "biome.configurationPath": "./api/biome.json",
+
+  // Biome as default formatter for TS/JS/Prisma
+  "[typescript]": {
+    "editor.defaultFormatter": "biomejs.biome",
+    "editor.formatOnSave": true
+  },
+  "[typescriptreact]": {
+    "editor.defaultFormatter": "biomejs.biome",
+    "editor.formatOnSave": true
+  },
+  "[javascript]": {
+    "editor.defaultFormatter": "biomejs.biome",
+    "editor.formatOnSave": true
+  },
+  "[javascriptreact]": {
+    "editor.defaultFormatter": "biomejs.biome",
+    "editor.formatOnSave": true
+  },
+  "[prisma]": {
+    "editor.defaultFormatter": "Prisma.prisma",
+    "editor.formatOnSave": true
+  },
+  "exportall.config.relExclusion": [
+    "/api/src/common/types/index.ts",
+    "/api/src/common/index.ts",
+    "/api/src/users",
+    "/api/src/users/dto",
+    "/api/src/common/constants",
+    "/api/src/common/helpers"
+  ]
+}

@@ -1,0 +1,17 @@
+# Compiled output
+api/dist/
+api/node_modules/
+api/generated/prisma/
+dist/
+node_modules/
+
+# Environment files
+api/.env
+api/.env.*
+.env
+.env.*
+
+# Logs and OS files
+*.log
+.DS_Store
+Thumbs.db

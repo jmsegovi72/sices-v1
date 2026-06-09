@@ -1,0 +1,26 @@
+import { IntersectionType, PartialType, PickType } from '@nestjs/mapped-types';
+import {
+  LocationFieldsDto,
+  PersonalFieldsDto,
+  QueryBaseDto,
+} from '@/common/dtos';
+
+// query-person.dto.ts
+export class QueryPersonDto extends IntersectionType(
+  // 🔹 PersonalFieldsDto → curp, firstName, firstLastName, secondLastName, fullName
+  PartialType(
+    PickType(PersonalFieldsDto, [
+      'curp',
+      'firstName',
+      'firstLastName',
+      'secondLastName',
+      'fullName',
+    ] as const),
+  ),
+  // 🔹 LocationFieldsDto → stateName, municipalityName
+  PartialType(
+    PickType(LocationFieldsDto, ['stateName', 'municipalityName'] as const),
+  ),
+  // 🔹 QueryBaseDto → searchTerm, isActive, limit, page
+  QueryBaseDto,
+) {}

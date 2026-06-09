@@ -1,0 +1,16 @@
+// src/common/decorators/optional-boolean.decorator.ts
+
+import { applyDecorators } from '@nestjs/common';
+import { IsBoolean, IsOptional } from 'class-validator';
+
+interface OptionalBooleanOptions {
+  fieldName: string;
+}
+
+export const OptionalBoolean = ({ fieldName }: OptionalBooleanOptions) =>
+  applyDecorators(
+    IsOptional(),
+    IsBoolean({
+      message: `El campo |${fieldName}| debe ser verdadero o falso.`,
+    }),
+  );

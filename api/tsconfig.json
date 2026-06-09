@@ -1,0 +1,50 @@
+{
+  "compilerOptions": {
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
+    "resolvePackageJsonExports": true,
+    "esModuleInterop": true,
+    "isolatedModules": true,
+    "declaration": true,
+    "removeComments": true,
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "allowSyntheticDefaultImports": true,
+    "target": "ES2023",
+    "sourceMap": true,
+    "outDir": "./dist",
+    "incremental": true,
+    "skipLibCheck": true,
+    "strictNullChecks": true,
+    "forceConsistentCasingInFileNames": true,
+    "noImplicitAny": false,
+    "strictBindCallApply": false,
+    "noFallthroughCasesInSwitch": false,
+    "baseUrl": "./",
+    "paths": {
+      "@/*": ["src/*"],
+      "@/auth/*": ["src/auth/*"],
+      "@/common/*": ["src/common/*"],
+      "@/prisma/*": ["src/prisma/*"],
+      //"@/generated/*": ["src/generated/*"],
+      "@/users/*": ["src/users/*"],
+      "@/persons/*": ["src/persons/*"],
+      "@/zip-codes/*": ["src/zip-codes/*"],
+      "@/addresses/*": ["src/addresses/*"],
+      "@/students/*": ["src/students/*"],
+      "@/schools-of-origin/*": ["src/schools-of-origin/*"],
+      "@/demographics/*": ["src/demographics/*"],
+      "@/emergency-contacts/*": ["src/emergency-contacts/*"],
+      "@/student-academic-backgrounds/*": [
+        "src/student-academic-backgrounds/*"
+      ],
+      "@/classes/*": ["src/classes/*"],
+      "@/enrollments/*": ["src/enrollments/*"],
+      "@/staff/*": ["src/staff/*"],
+      "@/teaching-load/*": ["src/teaching-load/*"],
+      "@/teaching-load-schedule/*": ["src/teaching-load-schedule/*"],
+      "@/grades/*": ["src/grades/*"],
+      "@/student-withdrawals/*": ["src/student-withdrawals/*"]
+    }
+  }
+}
