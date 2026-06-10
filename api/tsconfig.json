@@ -46,5 +46,10 @@
       "@/grades/*": ["src/grades/*"],
       "@/student-withdrawals/*": ["src/student-withdrawals/*"]
     }
-  }
+  },
+  "exclude": [
+    "node_modules",
+    "dist",
+    "src/metadata.ts"
+  ]
 }
