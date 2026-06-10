@@ -47,7 +47,6 @@ export {
   SHIFTS,
 } from './dtos';
 export { TransformDataInterceptor } from './interceptors';
-export { HttpExceptionFilter } from './filters/http-exception.filter';
 export type {
   ApiResponse,
   CreateEntityOptions,
@@ -71,3 +70,4 @@ export type {
 } from './types';
 export { EnumRoles, EnumUserType, RolesAccessLevel } from './types';
 export { formatDate, generateStrictTempPassword } from './utils';
+export { HttpExceptionFilter } from './filters/http-exception.filter';

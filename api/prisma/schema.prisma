@@ -1433,22 +1433,28 @@ view ViewTeachingLoadSchedule {
 }
 
 view ViewGrade {
-  id           Int      @unique @default(0) @db.UnsignedInt
-  grade        Int      @db.UnsignedTinyInt
-  type         String   @default("CS") @db.VarChar(2)
-  temporality  String   @default("FINAL") @db.VarChar(10)
-  opportunity  Int      @default(0) @db.UnsignedTinyInt
-  curp         String?  @db.Char(18)
-  fullName     String?  @default("") @db.VarChar(97)
-  gender       String?  @default("") @db.VarChar(15)
-  studentCode  String?  @db.VarChar(25)
-  classCode    String?  @db.Char(11)
-  subjectName  String?  @db.VarChar(125)
-  enrollmentId Int      @db.UnsignedInt
-  subjectId    Int      @db.UnsignedInt
-  classId      Int?     @db.UnsignedInt
-  createdAt    DateTime @default(now()) @db.Timestamp(0)
-  updatedAt    DateTime @default(now()) @db.Timestamp(0)
+  id               Int      @unique @default(0) @db.UnsignedInt
+  grade            Int      @db.UnsignedTinyInt
+  type             String   @default("CS") @db.VarChar(2)
+  temporality      String   @default("FINAL") @db.VarChar(10)
+  opportunity      Int      @default(0) @db.UnsignedTinyInt
+  curp             String?  @db.Char(18)
+  fullName         String?  @db.VarChar(97)
+  firstName        String?  @db.VarChar(45)
+  firstLastName    String?  @db.VarChar(25)
+  secondLastName   String?  @default("") @db.VarChar(25)
+  gender           String?  @default("") @db.VarChar(15)
+  studentCode      String?  @db.VarChar(25)
+  classCode        String?  @db.Char(11)
+  subjectName      String?  @db.VarChar(125)
+  schoolYear       String?  @db.Char(9)
+  semiannualPeriod String?  @db.VarChar(30)
+  enrollmentId     Int      @db.UnsignedInt
+  subjectId        Int      @db.UnsignedInt
+  classId          Int?     @db.UnsignedInt
+  listNumber       Int?     @default(0) @db.TinyInt
+  createdAt        DateTime @default(now()) @db.Timestamp(0)
+  updatedAt        DateTime @default(now()) @db.Timestamp(0)
 
   @@map("view_grades")
 }

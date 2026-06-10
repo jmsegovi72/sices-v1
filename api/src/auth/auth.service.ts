@@ -9,10 +9,11 @@ import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { PinoLogger } from 'nestjs-pino';
-import { APP_MESSAGES } from '@/common/constants';
+import { APP_MESSAGES, SystemModules } from '@/common/constants';
+import { ModulePermissions } from '@/common/constants/module-permissions';
 import { qwikMessageResponse } from '@/common/helpers';
 import { ErrorHandlerService } from '@/common/services/error-handler.service';
-import { UserFromView, ValidRoles, ValidUserType } from '@/common/types';
+import { RolesAccessLevel, UserFromView, ValidRoles, ValidUserType } from '@/common/types';
 import { PrismaService } from '@/prisma/prisma.service';
 import { ChangePasswordDto, LoginUserDto } from './dto';
 import { JwtPayload } from './interfaces';
@@ -193,9 +194,12 @@ export class AuthService {
       userType: user.userTypeCode as ValidUserType,
     };
 
+    const permissions = this.calculatePermissions(user.roleName as ValidRoles, user.userTypeCode as ValidUserType);
+
     return {
       user: this.mapUser(user),
       token: this.getJwtToken(payload),
+      permissions,
     };
   }
   /*============================================================
@@ -443,9 +447,64 @@ export class AuthService {
       Propósito: Refrescar la sesión y devolver datos frescos
   ============================================================*/
   public checkStatus(user: UserFromView) {
+    const permissions = this.calculatePermissions(user.roleName as ValidRoles, user.userTypeCode as ValidUserType);
     return {
       user: this.mapUser(user), // Aquí sí podemos usar el privado
       token: this.getJwtToken({ id: user.id }), // Renovamos el token 🚀
+      permissions,
     };
+  }
+
+  /**
+   * 🔒 Calcula los permisos por módulo basados en el Rol y Tipo de Usuario
+   */
+  private calculatePermissions(role: ValidRoles, userType: ValidUserType) {
+    const permissions: Record<string, string[]> = {};
+    const modules = Object.values(SystemModules) as SystemModules[];
+
+    // Mapeo de nombre de módulo al formato camelCase esperado por el frontend
+    const moduleKeyMap: Record<SystemModules, string> = {
+      [SystemModules.USERS]: 'users',
+      [SystemModules.PERSONS]: 'persons',
+      [SystemModules.GRADES]: 'grades',
+      [SystemModules.ENROLLMENTS]: 'enrollments',
+      [SystemModules.CLASSES]: 'classes',
+      [SystemModules.ZIP_CODES]: 'zipCodes',
+      [SystemModules.ADDRESSES]: 'addresses',
+      [SystemModules.STUDENTS]: 'students',
+      [SystemModules.SCHOOLS_OF_ORIGIN]: 'schoolsOfOrigin',
+      [SystemModules.DEMOGRAPHICS]: 'demographics',
+      [SystemModules.EMERGENCY_CONTACTS]: 'emergencyContacts',
+      [SystemModules.STUDENT_ACADEMIC_BACKGROUNDS]: 'studentAcademicBackgrounds',
+      [SystemModules.STAFF]: 'staff',
+      [SystemModules.TEACHING_LOAD]: 'teachingLoad',
+    };
+
+    for (const module of modules) {
+      const allowedActionsForType = ModulePermissions[module]?.[userType] || [];
+      const modulePermissions: string[] = [];
+
+      // 1. Validar lectura (dbLimitedDataReader)
+      const allowedRolesForRead = RolesAccessLevel.dbLimitedDataReader as readonly string[];
+      if (allowedRolesForRead.includes(role) && allowedActionsForType.includes('read')) {
+        modulePermissions.push('read');
+      }
+
+      // 2. Validar escritura (dbLimitedDataWriter)
+      const allowedRolesForWrite = RolesAccessLevel.dbLimitedDataWriter as readonly string[];
+      const hasWriteAction = allowedActionsForType.some(action =>
+        ['create', 'update', 'delete'].includes(action),
+      );
+      if (allowedRolesForWrite.includes(role) && hasWriteAction) {
+        modulePermissions.push('write');
+      }
+
+      const frontendKey = moduleKeyMap[module];
+      if (frontendKey) {
+        permissions[frontendKey] = modulePermissions;
+      }
+    }
+
+    return permissions;
   }
 }

@@ -30,6 +30,13 @@ const withGlobalAccess = (
     'read',
     'update',
   ],
+
+  // 🟡 ADMINISTRATIVO → gestión por defecto
+  [EnumUserType.ADMINISTRATIVO]: permissions[EnumUserType.ADMINISTRATIVO] ?? [
+    'create',
+    'read',
+    'update',
+  ],
 });
 
 /**
@@ -40,29 +47,33 @@ export const ModulePermissions: Record<
   Partial<Record<EnumUserType, ModuleAction[]>>
 > = {
   [SystemModules.GRADES]: withGlobalAccess({
-    // [EnumUserType.DOCENTE]: ['create', 'read', 'update'],
-    // [EnumUserType.ALUMNO]: ['read'],
+    [EnumUserType.DOCENTE]: ['create', 'read', 'update'],
+    [EnumUserType.ALUMNO]: ['read'],
   }),
 
   [SystemModules.ENROLLMENTS]: withGlobalAccess({
-    // [EnumUserType.ALUMNO]: ['create', 'read'],
-    //[EnumUserType.DOCENTE]: [],
+    [EnumUserType.ALUMNO]: ['read'],
   }),
 
   [SystemModules.PERSONS]: withGlobalAccess({}),
   [SystemModules.ZIP_CODES]: withGlobalAccess({}),
   [SystemModules.ADDRESSES]: withGlobalAccess({}),
-  [SystemModules.STUDENTS]: withGlobalAccess({}),
+  [SystemModules.STUDENTS]: withGlobalAccess({
+    [EnumUserType.DOCENTE]: ['read'],
+  }),
   [SystemModules.SCHOOLS_OF_ORIGIN]: withGlobalAccess({}),
   [SystemModules.DEMOGRAPHICS]: withGlobalAccess({}),
   [SystemModules.EMERGENCY_CONTACTS]: withGlobalAccess({
     // Si en el futuro el ALUMNO puede editar sus propios contactos,
     // aquí agregaríamos: [EnumUserType.ALUMNO]: ['create', 'read', 'update']
   }),
-  [SystemModules.CLASSES]: withGlobalAccess({}),
+  [SystemModules.CLASSES]: withGlobalAccess({
+    [EnumUserType.DOCENTE]: ['read'],
+  }),
   [SystemModules.USERS]: withGlobalAccess({
-    // 🚫 Bloqueamos explícitamente a Control Escolar
+    // 🚫 Bloqueamos explícitamente a Control Escolar y Personal Administrativo
     [EnumUserType.CE]: [],
+    [EnumUserType.ADMINISTRATIVO]: [],
 
     // ✅ El SUPER ya tiene acceso total por la función withGlobalAccess,
     // pero puedes dejarlo explícito si prefieres por claridad visual:

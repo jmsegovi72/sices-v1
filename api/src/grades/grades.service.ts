@@ -22,7 +22,7 @@ import {
   FindEntityParams,
   UpdateEntityParams,
 } from '@/common/interfaces';
-import { TypeWhereFieldMap } from '@/common/types';
+import { TypeWhereFieldMap, UserFromView } from '@/common/types';
 import { PrismaService } from '@/prisma/prisma.service';
 import {
   CreateGradeDto,
@@ -294,7 +294,7 @@ export class GradesService {
   - Por alumno → boleta del alumno
   - Por oportunidad, temporality, type
   ============================================================ */
-  async findMany<T>(filters: QueryGradeDto): Promise<ApiResponse<T[]>> {
+  async findMany<T>(filters: QueryGradeDto, user?: UserFromView): Promise<ApiResponse<T[]>> {
     const pagination = resolvePagination(filters);
 
     const whereCondition = buildWhereMany<
@@ -317,6 +317,32 @@ export class GradesService {
       },
       orSearch: ['fullName', 'curp', 'studentCode', 'classCode'],
     });
+
+    // 🔒 Filtrar calificaciones para usuarios de tipo DOCENTE
+    if (user && user.userTypeCode === 'DOCENTE') {
+      const userDb = await this.prisma.user.findUnique({
+        where: { id: user.id },
+        select: { personId: true },
+      });
+      if (userDb?.personId) {
+        const teachingLoads = await this.prisma.teachingLoad.findMany({
+          where: { staffTeachingProfileId: userDb.personId },
+          select: { classId: true, studyPlanId: true },
+        });
+
+        if (teachingLoads.length > 0) {
+          whereCondition.OR = teachingLoads.map((tl) => ({
+            classId: tl.classId,
+            subjectId: tl.studyPlanId,
+          }));
+        } else {
+          // Si no tiene asignaciones, no ve ninguna calificación
+          whereCondition.id = 0;
+        }
+      } else {
+        whereCondition.id = 0;
+      }
+    }
 
     const queryOptions: Prisma.ViewGradeFindManyArgs = {
       ...(pagination.limit > 0 && {

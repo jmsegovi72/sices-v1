@@ -68,8 +68,11 @@ export class GradesController {
   @AuthModulePermission(SystemModules.GRADES, 'read')
   @UseInterceptors(TransformDataInterceptor)
   @HttpCode(HttpStatus.OK)
-  async findMany(@Query() filters: QueryGradeDto): Promise<ApiResponse<any[]>> {
-    return await this.gradesService.findMany(filters);
+  async findMany(
+    @Query() filters: QueryGradeDto,
+    @GetUser() user: UserFromView,
+  ): Promise<ApiResponse<any[]>> {
+    return await this.gradesService.findMany(filters, user);
   }
 
   @Get()
