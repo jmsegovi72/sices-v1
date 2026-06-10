@@ -6,6 +6,7 @@ import { Logger } from 'nestjs-pino';
 import { join } from 'path';
 import { AppModule } from './app.module';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
 async function bootstrap() {
   // 1. Creamos la app (el ConfigModule ya validó todo dentro de AppModule)
@@ -23,6 +24,28 @@ async function bootstrap() {
 
   // En tu main.ts
   app.setGlobalPrefix('sices/v3');
+
+  // --- CONFIGURACIÓN DE SWAGGER ---
+  const config = new DocumentBuilder()
+    .setTitle('SICES V3 API')
+    .setDescription(
+      'Documentación interactiva de la API para SICES V3. Utilice el botón "Authorize" para autenticarse con su token Bearer JWT.',
+    )
+    .setVersion('3.0')
+    .addBearerAuth(
+      {
+        type: 'http',
+        scheme: 'bearer',
+        bearerFormat: 'JWT',
+        name: 'JWT',
+        description: 'Ingrese el token JWT de autenticación',
+        in: 'header',
+      },
+      'bearer-token',
+    )
+    .build();
+  const document = SwaggerModule.createDocument(app, config);
+  SwaggerModule.setup('sices/v3/docs', app, document);
 
   // Habilitar la carpeta de subidas estáticas
   app.useStaticAssets(join(process.cwd(), 'uploads'), {
