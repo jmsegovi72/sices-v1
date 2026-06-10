@@ -5,7 +5,7 @@ import { NestExpressApplication } from '@nestjs/platform-express';
 import { Logger } from 'nestjs-pino';
 import { join } from 'path';
 import { AppModule } from './app.module';
-import { HttpExceptionFilter } from '@/common';
+import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 
 async function bootstrap() {
   // 1. Creamos la app (el ConfigModule ya validó todo dentro de AppModule)

@@ -70,4 +70,3 @@ export type {
 } from './types';
 export { EnumRoles, EnumUserType, RolesAccessLevel } from './types';
 export { formatDate, generateStrictTempPassword } from './utils';
-export { HttpExceptionFilter } from './filters/http-exception.filter';
