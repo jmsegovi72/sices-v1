@@ -77,7 +77,7 @@ export class UserRoleGuard implements CanActivate {
     const userRole = user.roleName;
 
     // Validamos si el rol del usuario está dentro del nivel de acceso permitido
-    if (isRoleAllowed(userRole, accessLevel)) return true;
+    if (isRoleAllowed(userRole || '', accessLevel)) return true;
 
     // Si no tiene permisos suficientes, lanzamos una excepción
     throw new ForbiddenException(

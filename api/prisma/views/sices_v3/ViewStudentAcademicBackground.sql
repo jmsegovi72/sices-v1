@@ -1,7 +1,7 @@
 SELECT
   `sab`.`id` AS `id`,
   `sab`.`student_id` AS `student_id`,
-  `sices_v3`.`vp`.`full_name` AS `student_full_name`,
+  `sices_v3`.`vp`.`fullName` AS `student_full_name`,
   `sices_v3`.`vp`.`curp` AS `student_curp`,
   `s`.`code_number` AS `student_code`,
   `sab`.`average` AS `average`,
@@ -36,6 +36,6 @@ FROM
     JOIN `sices_v3`.`professional_degrees` `pd` ON((`pd`.`id` = `sab`.`professional_degree_id`))
   )
 ORDER BY
-  `sices_v3`.`vp`.`first_last_name`,
-  `sices_v3`.`vp`.`second_last_name`,
-  `sices_v3`.`vp`.`first_name`
+  `sices_v3`.`vp`.`firstLastName`,
+  `sices_v3`.`vp`.`secondLastName`,
+  `sices_v3`.`vp`.`firstName`

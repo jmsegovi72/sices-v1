@@ -1,21 +1,5 @@
 export { AcademicPeriodDto } from './academic-period.dto';
-export {
-  ACADEMIC_DISCIPLINES,
-  AcademicFieldsDto,
-  ClassFieldsDto,
-  ContactFieldsDto,
-  EDUCATION_LEVELS,
-  FUNDING_SOURCES,
-  GRADE_TEMPORALITIES,
-  GRADE_TYPES,
-  GROUPS,
-  LocationFieldsDto,
-  MiscFieldsDto,
-  MODALITIES,
-  PersonalFieldsDto,
-  SEMIANNUAL_PERIODS,
-  SHIFTS,
-} from './base';
+export { ACADEMIC_DISCIPLINES, AcademicFieldsDto, EDUCATION_LEVELS, MODALITIES, ClassFieldsDto, GROUPS, SEMIANNUAL_PERIODS, SHIFTS, ContactFieldsDto, LocationFieldsDto, FUNDING_SOURCES, GRADE_TEMPORALITIES, GRADE_TYPES, MiscFieldsDto, PersonalFieldsDto } from './base';
 export { BaseQueryDto } from './base-query.dto';
 export { PaginationDto } from './pagination.dto';
 export { QueryBaseDto } from './queries';

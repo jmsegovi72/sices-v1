@@ -15,6 +15,7 @@ export class QueryPersonDto extends IntersectionType(
       'firstLastName',
       'secondLastName',
       'fullName',
+      'gender',
     ] as const),
   ),
   // 🔹 LocationFieldsDto → stateName, municipalityName

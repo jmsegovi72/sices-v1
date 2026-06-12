@@ -9,7 +9,7 @@ if (!fs.existsSync(schemaPath)) {
 
 let schema = fs.readFileSync(schemaPath, 'utf8');
 
-const viewStudentRegex = /(view\s+ViewStudent\s*\{[\s\S]*?\})/;
+const viewStudentRegex = /(view\s+(ViewStudent|view_students)\s*\{[\s\S]*?\})/;
 const match = schema.match(viewStudentRegex);
 
 if (match) {
@@ -17,13 +17,13 @@ if (match) {
 
   // Reemplazar el campo id
   viewBlock = viewBlock.replace(
-    /id\s+(Decimal|BigInt|Int\?)\s+@unique\s+@default\(0\)(?:\s+@db\.Decimal\(\d+,\s*\d+\))?/,
+    /id\s+(Decimal|BigInt|Int\?)\s+@unique\s+@default\(0\)(?:\s+(?:@db\.Decimal\(\d+,\s*\d+\)|@db\.UnsignedInt))?/,
     'id                 Int     @unique @default(0) @db.UnsignedInt'
   );
 
   // Reemplazar el campo personId
   viewBlock = viewBlock.replace(
-    /personId\s+(Decimal|BigInt|Int\?)\s+@default\(0\)\s+@map\("person_id"\)(?:\s+@db\.Decimal\(\d+,\s*\d+\))?/,
+    /personId\s+(Decimal|BigInt|Int\?)\s+@default\(0\)\s+@map\("person_id"\)(?:\s+(?:@db\.Decimal\(\d+,\s*\d+\)|@db\.UnsignedInt))?/,
     'personId           Int     @default(0) @map("person_id") @db.UnsignedInt'
   );
 

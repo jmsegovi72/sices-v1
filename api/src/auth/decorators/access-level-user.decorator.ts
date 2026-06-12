@@ -37,7 +37,7 @@ export const AccessLevelUser = createParamDecorator(
     // Validación contra el roleName que ya viene plano de la View
     const userRole = user.roleName;
 
-    if (isRoleAllowed(userRole, accessLevel)) return user;
+    if (isRoleAllowed(userRole || '', accessLevel)) return user;
 
     // Mensaje profesional usando el fullName calculado de la View
     throw new ForbiddenException(

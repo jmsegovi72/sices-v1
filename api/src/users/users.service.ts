@@ -33,7 +33,6 @@ import {
 import { TypeWhereFieldMap, UserFromView } from '@/common/types';
 import { generateStrictTempPassword } from '@/common/utils';
 import { PrismaService } from '@/prisma/prisma.service';
-import { UploadsService } from '@/uploads';
 import {
   CreateUserDto,
   QueryUserDto,
@@ -46,7 +45,6 @@ export class UsersService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly logger: PinoLogger,
-    private readonly uploadsService: UploadsService,
   ) {}
 
   /* ============================================================
@@ -80,7 +78,6 @@ export class UsersService {
       ...rest,
       username,
       password: hashSync(plainPassword, 10),
-      photoUrl: '/uploads/users/default-avatar.png',
       createdBy: userId,
     };
 
@@ -282,13 +279,13 @@ export class UsersService {
         userTypeId: true,
         isActive: true,
         isFirstLogin: true,
-        photoUrl: true,
         persons_users_person_idTopersons: {
           select: {
             firstName: true,
             firstLastName: true,
             secondLastName: true,
             curp: true,
+            photoUrl: true,
           },
         },
         roles: {
@@ -328,7 +325,7 @@ export class UsersService {
           userTypeId: usr.userTypeId,
           isActive: !!usr.isActive,
           isFirstLogin: !!usr.isFirstLogin,
-          photoUrl: usr.photoUrl,
+          photoUrl: usr.persons_users_person_idTopersons?.photoUrl ?? '/uploads/users/default-avatar.png',
           personName: usr.persons_users_person_idTopersons
             ? `${usr.persons_users_person_idTopersons.firstName} ${usr.persons_users_person_idTopersons.firstLastName} ${usr.persons_users_person_idTopersons.secondLastName || ''}`.trim()
             : null,
@@ -526,96 +523,5 @@ export class UsersService {
         updatedBy: adminId,
       },
     };
-  }
-
-  /* ============================================================
-   📷 UPDATE PHOTO (SICES V3)
-   ------------------------------------------------------------
-   📌 Descripción:
-   Busca el CURP del usuario en la base de datos, llama a
-   UploadsService para guardar físicamente el archivo con el nombre
-   CURP.png y finalmente actualiza photoUrl en la base de datos.
-   ============================================================ */
-  async updatePhoto(
-    id: number,
-    file: Express.Multer.File,
-    currentUser: UserFromView,
-  ): Promise<ApiResponse<any>> {
-    this.logger.info(
-      { userId: id, updatedBy: currentUser.id },
-      'Iniciando actualización de foto de usuario',
-    );
-
-    // 🔹 1. Buscar al usuario y su CURP
-    const user = await this.prisma.user.findUnique({
-      where: { id },
-      select: {
-        id: true,
-        username: true,
-        persons_users_person_idTopersons: {
-          select: {
-            curp: true,
-          },
-        },
-      },
-    });
-
-    if (!user) {
-      throw new NotFoundException(
-        qwikMessageResponse({
-          success: false,
-          message: APP_MESSAGES.error.USERS.NOT_FOUND(id),
-          errorCode: 'NOT_FOUND',
-        }),
-      );
-    }
-
-    const curp = user.persons_users_person_idTopersons?.curp;
-    if (!curp) {
-      throw new BadRequestException(
-        qwikMessageResponse({
-          success: false,
-          message:
-            'El usuario no tiene una CURP asociada. No se puede generar el nombre de archivo.',
-          errorCode: 'BAD_REQUEST',
-        }),
-      );
-    }
-
-    // 🔹 2. Guardar el archivo usando UploadsService
-    const sanitizedCurp = curp.trim().toUpperCase();
-    const extension = file.mimetype === 'image/png' ? '.png' : '.jpg';
-    const filename = `${sanitizedCurp}${extension}`;
-
-    const relativePath = await this.uploadsService.saveFile(
-      file,
-      'users', // Carpeta destino
-      filename,
-      ['image/png', 'image/jpeg', 'image/jpg'], // Formatos permitidos
-      5, // Límite de tamaño (5MB)
-    );
-
-    // 🔹 3. Actualizar la base de datos
-    await this.prisma.user.update({
-      where: { id },
-      data: {
-        photoUrl: relativePath,
-        updatedBy: currentUser.id,
-      },
-    });
-
-    this.logger.info(
-      { userId: id, photoUrl: relativePath },
-      'Foto de usuario actualizada exitosamente',
-    );
-
-    return qwikMessageResponse({
-      success: true,
-      message: 'Foto de usuario actualizada correctamente.',
-      data: {
-        id,
-        photoUrl: relativePath,
-      },
-    });
   }
 }

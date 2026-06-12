@@ -17,7 +17,7 @@ export class UploadsService {
    * @returns La ruta relativa para guardar en la base de datos (ej. '/uploads/users/CURP.png')
    */
   async saveFile(
-    file: Express.Multer.File,
+    file: any,
     folder: string,
     filename: string,
     allowedMimeTypes: string[] = ['image/png'],

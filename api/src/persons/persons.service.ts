@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PinoLogger } from 'nestjs-pino';
 import { PaginationDto, SearchDto } from '@/common/dtos';
@@ -24,8 +24,9 @@ import {
   FindEntityParams,
   UpdateEntityParams,
 } from '@/common/interfaces';
-import { TypeWhereFieldMap } from '@/common/types';
+import { TypeWhereFieldMap, UserFromView } from '@/common/types';
 import { PrismaService } from '@/prisma';
+import { UploadsService } from '@/uploads';
 import {
   CreateManyPersonDto,
   CreatePersonDto,
@@ -38,6 +39,7 @@ export class PersonsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly logger: PinoLogger,
+    private readonly uploadsService: UploadsService,
   ) {}
   /* ============================================================
    👤 CREATE PERSON (SICES V3)
@@ -122,6 +124,7 @@ export class PersonsService {
       phone: data.phone,
       personalEmail: data.email,
       rfc,
+      photoUrl: data.photoUrl,
       createdBy: userId,
       updatedBy: userId,
     };
@@ -226,6 +229,7 @@ export class PersonsService {
           phone: person.phone,
           personalEmail: person.email,
           rfc,
+          photoUrl: person.photoUrl,
           createdBy: userId,
           updatedBy: userId,
         };
@@ -339,6 +343,7 @@ export class PersonsService {
         phone: true,
         personalEmail: true,
         rfc: true,
+        photoUrl: true,
         states: {
           select: {
             name: true,
@@ -379,6 +384,7 @@ export class PersonsService {
         phone: person.phone,
         personalEmail: person.personalEmail,
         rfc: person.rfc,
+        photoUrl: person.photoUrl ?? '/uploads/users/default-avatar.png',
         stateName: person.states?.name ?? null,
         municipalityName: person.municipalities?.municipality ?? null,
       };
@@ -412,6 +418,7 @@ export class PersonsService {
       },
       equals: {
         curp: 'curp', // ← búsqueda exacta ✅
+        gender: 'gender',
       },
       orSearch: ['fullName', 'curp', 'personalEmail'],
     });
@@ -539,6 +546,152 @@ export class PersonsService {
       data: dataToUpdate,
       returnData,
       idFieldName,
+    });
+  }
+
+  /* ============================================================
+   📷 UPDATE PHOTO (SICES V3)
+   ------------------------------------------------------------
+   📌 Descripción:
+   Busca el CURP de la persona en la base de datos, llama a
+   UploadsService para guardar físicamente el archivo con el nombre
+   CURP.png/jpg y finalmente actualiza photoUrl en la base de datos.
+   ============================================================ */
+  async updatePhoto(
+    id: number,
+    file: any,
+    currentUser: UserFromView,
+  ): Promise<ApiResponse<any>> {
+    this.logger.info(
+      { personId: id, updatedBy: currentUser.id },
+      'Iniciando actualización de foto de persona',
+    );
+
+    // 🔹 1. Buscar a la persona y su CURP
+    const person = await this.prisma.person.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        curp: true,
+      },
+    });
+
+    if (!person) {
+      throw new NotFoundException(
+        qwikMessageResponse({
+          success: false,
+          message: `La persona con ID ${id} no existe.`,
+          errorCode: 'NOT_FOUND',
+        }),
+      );
+    }
+
+    const curp = person.curp;
+    if (!curp) {
+      throw new BadRequestException(
+        qwikMessageResponse({
+          success: false,
+          message: 'La persona no tiene una CURP asociada. No se puede generar el nombre de archivo.',
+          errorCode: 'BAD_REQUEST',
+        }),
+      );
+    }
+
+    // 🔹 2. Guardar el archivo usando UploadsService
+    const sanitizedCurp = curp.trim().toUpperCase();
+    const extension = file.mimetype === 'image/png' ? '.png' : '.jpg';
+    const filename = `${sanitizedCurp}${extension}`;
+
+    const relativePath = await this.uploadsService.saveFile(
+      file,
+      'users', // Se mantiene la misma carpeta destino física
+      filename,
+      ['image/png', 'image/jpeg', 'image/jpg'], // Formatos permitidos
+      5, // Límite de tamaño (5MB)
+    );
+
+    // 🔹 3. Actualizar la base de datos (se actualiza el registro en personas)
+    await this.prisma.person.update({
+      where: { id },
+      data: {
+        photoUrl: relativePath,
+        updatedBy: currentUser.id,
+      },
+    });
+
+    this.logger.info(
+      { personId: id, photoUrl: relativePath },
+      'Foto de persona actualizada exitosamente',
+    );
+
+    return qwikMessageResponse({
+      success: true,
+      message: 'Foto de persona actualizada correctamente.',
+      data: {
+        id,
+        photoUrl: relativePath,
+      },
+    });
+  }
+
+  /* ============================================================
+   🗺️ GET SEARCH CATALOGS (SICES V3)
+   ------------------------------------------------------------
+   📌 Descripción:
+   Retorna los catálogos de estados y municipios con personas
+   registradas. Se consultan de forma distinta desde ViewPerson.
+   ============================================================ */
+  async getSearchCatalogs(): Promise<ApiResponse<any>> {
+    this.logger.info('Obteniendo catálogos de estados y municipios con personas registradas');
+
+    // 1. Obtener estados únicos (no nulos ni vacíos)
+    const rawStates = await this.prisma.viewPerson.findMany({
+      where: {
+        birthState: {
+          not: null,
+          notIn: [''],
+        },
+      },
+      select: {
+        birthState: true,
+      },
+      distinct: ['birthState'],
+      orderBy: {
+        birthState: 'asc',
+      },
+    });
+    const states = rawStates.map((s) => s.birthState);
+
+    // 2. Obtener combinaciones únicas de estado y municipio
+    const municipalities = await this.prisma.viewPerson.findMany({
+      where: {
+        birthState: {
+          not: null,
+          notIn: [''],
+        },
+        birthMunicipality: {
+          not: null,
+          notIn: [''],
+        },
+      },
+      select: {
+        birthState: true,
+        birthMunicipality: true,
+      },
+      distinct: ['birthState', 'birthMunicipality'],
+      orderBy: [
+        { birthState: 'asc' },
+        { birthMunicipality: 'asc' },
+      ],
+    });
+
+    return qwikMessageResponse({
+      success: true,
+      message: 'Catálogos de búsqueda cargados correctamente.',
+      data: {
+        states,
+        municipalities,
+      },
     });
   }
 }

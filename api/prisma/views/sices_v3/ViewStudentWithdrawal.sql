@@ -4,7 +4,7 @@ SELECT
   `ss`.`status_key` AS `studentStatusKey`,
   `ss`.`description` AS `studentStatus`,
   `s`.`code_number` AS `studentCode`,
-  `sices_v3`.`vp`.`full_name` AS `studentFullName`,
+  `sices_v3`.`vp`.`fullName` AS `studentFullName`,
   `sices_v3`.`vp`.`curp` AS `studentCurp`,
   `c`.`class_code` AS `classCode`,
   `sap`.`semiannual_period` AS `semiannualPeriod`,

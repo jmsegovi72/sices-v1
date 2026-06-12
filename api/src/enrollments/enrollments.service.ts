@@ -90,7 +90,7 @@ export class EnrollmentsService {
       );
     }
 
-    if (studentResponse.data.isActive !== 1) {
+    if (studentResponse.data.isActive !== true) {
       throw new ConflictException(
         qwikMessageResponse({
           success: false,
@@ -559,7 +559,7 @@ export class EnrollmentsService {
         );
       }
 
-      if (studentResponse.data.isActive !== 1) {
+      if (studentResponse.data.isActive !== true) {
         throw new ConflictException(
           qwikMessageResponse({
             success: false,

@@ -11,10 +11,8 @@ import {
   Patch,
   Post,
   Query,
-  UploadedFile,
   UseInterceptors,
 } from '@nestjs/common';
-import { FileInterceptor } from '@nestjs/platform-express';
 import { plainToClass } from 'class-transformer';
 import { validateOrReject } from 'class-validator';
 import { Auth, GetUser } from '@/auth/decorators';
@@ -161,23 +159,6 @@ export class UsersController {
     });
   }
 
-  /* ============================================================
-     📷 METHOD: updatePhoto
-     ------------------------------------------------------------
-     📌 Descripción: 
-     Sube y actualiza la foto de perfil del usuario (formato PNG, nombrada con CURP).
-     Acceso exclusivo para administradores (dbOwner).
-     ============================================================ */
-  @Patch('photo/:id')
-  @Auth(ACCESS_LEVEL.dbOwner)
-  @UseInterceptors(FileInterceptor('photo'))
-  async updatePhoto(
-    @Param('id', ParseIntPipe) id: number,
-    @UploadedFile() file: Express.Multer.File,
-    @GetUser() user: UserFromView,
-  ) {
-    return await this.usersService.updatePhoto(id, file, user);
-  }
 
   /* ============================================================
      🔄 PATCH: users/:id/status

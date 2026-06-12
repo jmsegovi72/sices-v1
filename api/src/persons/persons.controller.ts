@@ -9,8 +9,10 @@ import {
   Patch,
   Post,
   Query,
+  UploadedFile,
   UseInterceptors,
 } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 import { plainToClass } from 'class-transformer';
 import { validateOrReject } from 'class-validator';
 import { Auth, AuthModulePermission, GetUser } from '@/auth/decorators';
@@ -122,6 +124,19 @@ export class PersonsController {
   }
 
   /* ============================================================
+     🗺️ GET SEARCH CATALOGS (SICES V3)
+     ------------------------------------------------------------
+     📌 Descripción:
+     Endpoint público que devuelve el catálogo de estados y 
+     municipios con personas registradas para filtrado en frontend.
+     ============================================================ */
+  @Get('search-catalogs')
+  @HttpCode(HttpStatus.OK)
+  async getSearchCatalogs(): Promise<ApiResponse<any>> {
+    return await this.personsService.getSearchCatalogs();
+  }
+
+  /* ============================================================
  🔍 FIND ONE PERSON BY CRITERIA (SICES V3)
  ------------------------------------------------------------
  📌 Descripción:
@@ -185,5 +200,24 @@ export class PersonsController {
         returnData: false,
       },
     });
+  }
+
+  /* ============================================================
+     📷 METHOD: updatePhoto
+     ------------------------------------------------------------
+     📌 Descripción: 
+     Sube y actualiza la foto de perfil de la persona (formato PNG, nombrada con CURP).
+     Acceso para usuarios autorizados a nivel de actualización de Personas.
+     ============================================================ */
+  @Patch('photo/:id')
+  @Auth(ACCESS_LEVEL.dbDataWriter)
+  @AuthModulePermission(SystemModules.PERSONS, 'update')
+  @UseInterceptors(FileInterceptor('photo'))
+  async updatePhoto(
+    @Param('id', ParsePositiveIntPipe) id: number,
+    @UploadedFile() file: any,
+    @GetUser() user: UserFromView,
+  ) {
+    return await this.personsService.updatePhoto(id, file, user);
   }
 }

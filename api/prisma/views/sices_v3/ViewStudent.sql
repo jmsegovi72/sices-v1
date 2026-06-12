@@ -1,23 +1,24 @@
 SELECT
-  IFNULL(`s`.`id`, 0) AS `id`,
-  IFNULL(`sices_v3`.`vp`.`id`, 0) AS `person_id`,
-  `sices_v3`.`vp`.`full_name` AS `full_name`,
-  `sices_v3`.`vp`.`first_name` AS `first_name`,
-  `sices_v3`.`vp`.`first_last_name` AS `first_last_name`,
-  `sices_v3`.`vp`.`second_last_name` AS `second_last_name`,
+  `s`.`id` AS `id`,
+  `sices_v3`.`vp`.`id` AS `personId`,
+  `sices_v3`.`vp`.`fullName` AS `fullName`,
+  `sices_v3`.`vp`.`firstName` AS `firstName`,
+  `sices_v3`.`vp`.`firstLastName` AS `firstLastName`,
+  `sices_v3`.`vp`.`secondLastName` AS `secondLastName`,
   `sices_v3`.`vp`.`curp` AS `curp`,
   `sices_v3`.`vp`.`gender` AS `gender`,
   `sices_v3`.`vp`.`age` AS `age`,
-  `sices_v3`.`vp`.`personal_phone` AS `personal_phone`,
-  `sices_v3`.`vp`.`birth_state` AS `birth_state`,
-  `sices_v3`.`vp`.`birth_municipality` AS `birth_municipality`,
-  `s`.`code_number` AS `student_code`,
-  `s`.`institutional_mail` AS `institutional_mail`,
-  `ep`.`name` AS `educational_program`,
-  `ep`.`code` AS `program_code`,
-  `ep`.`study_plan` AS `study_plan`,
-  `ad`.`name` AS `academic_discipline`,
-  `sol`.`offered_education_level` AS `education_level`,
+  `sices_v3`.`vp`.`phone` AS `phone`,
+  `sices_v3`.`vp`.`birthState` AS `birthState`,
+  `sices_v3`.`vp`.`birthMunicipality` AS `birthMunicipality`,
+  `sices_v3`.`vp`.`photoUrl` AS `photoUrl`,
+  `s`.`code_number` AS `studentCode`,
+  `s`.`institutional_mail` AS `institutionalMail`,
+  `ep`.`name` AS `educationalProgram`,
+  `ep`.`code` AS `programCode`,
+  `ep`.`study_plan` AS `studyPlan`,
+  `ad`.`name` AS `academicDiscipline`,
+  `sol`.`offered_education_level` AS `educationLevel`,
   `md`.`name` AS `modality`,
   `sg`.`cardinal_number` AS `generation`,
 (
@@ -27,27 +28,24 @@ SELECT
       ) THEN `sg`.`masters_degree_cycle`
       ELSE `sg`.`bachelor_degree_cycle`
     END
-  ) AS `education_cycle`,
-  coalesce(`ss`.`description`, 'En proceso') AS `status_description`,
-  `ss`.`status_key` AS `status_key`,
-  coalesce(`ss`.`is_active`, 0) AS `is_active`,
-  coalesce(
-    (
-      SELECT
-        max(`sem`.`number`)
-      FROM
+  ) AS `educationCycle`,
+  `ss`.`description` AS `statusDescription`,
+  `ss`.`status_key` AS `statusKey`,
+  `ss`.`is_active` AS `isActive`,
+(
+    SELECT
+      max(`sem`.`number`)
+    FROM
+      (
         (
-          (
-            `sices_v3`.`enrollments` `e`
-            JOIN `sices_v3`.`classes` `c` ON((`c`.`id` = `e`.`class_id`))
-          )
-          JOIN `sices_v3`.`semesters` `sem` ON((`sem`.`id` = `c`.`semester_id`))
+          `sices_v3`.`enrollments` `e`
+          JOIN `sices_v3`.`classes` `c` ON((`c`.`id` = `e`.`class_id`))
         )
-      WHERE
-        (`e`.`student_id` = `s`.`id`)
-    ),
-    0
-  ) AS `current_semester`
+        JOIN `sices_v3`.`semesters` `sem` ON((`sem`.`id` = `c`.`semester_id`))
+      )
+    WHERE
+      (`e`.`student_id` = `s`.`id`)
+  ) AS `currentSemester`
 FROM
   (
     (
@@ -72,6 +70,6 @@ FROM
     LEFT JOIN `sices_v3`.`student_status` `ss` ON((`ss`.`id` = `s`.`status_id`))
   )
 ORDER BY
-  `sices_v3`.`vp`.`first_last_name`,
-  `sices_v3`.`vp`.`second_last_name`,
-  `sices_v3`.`vp`.`first_name`
+  `sices_v3`.`vp`.`firstLastName`,
+  `sices_v3`.`vp`.`secondLastName`,
+  `sices_v3`.`vp`.`firstName`

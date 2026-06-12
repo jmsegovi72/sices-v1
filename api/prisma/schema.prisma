@@ -137,6 +137,7 @@ model Person {
   updatedAt                       DateTime          @default(now()) @map("updated_at") @db.Timestamp(0)
   createdBy                       Int               @map("created_by") @db.UnsignedInt
   updatedBy                       Int               @map("updated_by") @db.UnsignedInt
+  photoUrl                        String?           @map("photo_url") @db.VarChar(255)
   addresses                       Address?
   demographics                    Demographic?
   emergency_contacts              EmergencyContact?
@@ -278,7 +279,6 @@ model User {
   roleId                                                                      Int                         @map("role_id") @db.UnsignedInt
   isActive                                                                    Boolean                     @default(true) @map("is_active")
   isFirstLogin                                                                Boolean                     @default(true) @map("is_first_login")
-  photoUrl                                                                    String?                     @map("photo_url") @db.VarChar(255)
   loginAttempts                                                               Int                         @default(0) @map("login_attempts")
   lockedUntil                                                                 DateTime?                   @map("locked_until") @db.DateTime(0)
   createdAt                                                                   DateTime?                   @default(now()) @map("created_at") @db.Timestamp(0)
@@ -1042,20 +1042,21 @@ view ViewAddress {
 view ViewPerson {
   id                Int      @unique @default(0) @db.UnsignedInt
   curp              String   @unique @db.Char(18)
-  firstName         String   @map("first_name") @db.VarChar(45)
-  firstLastName     String   @map("first_last_name") @db.VarChar(25)
-  secondLastName    String   @default("") @map("second_last_name") @db.VarChar(25)
-  fullName          String?  @map("full_name") @db.VarChar(97)
-  gender            String   @default("") @db.VarChar(15)
-  birthDate         DateTime @map("birth_date") @db.Date
+  firstName         String   @db.VarChar(45)
+  firstLastName     String   @db.VarChar(25)
+  secondLastName    String   @default("") @db.VarChar(25)
+  fullName          String?  @db.VarChar(97)
+  gender            String   @db.Char(1)
+  birthDate         DateTime @db.Date
   age               Int?
-  nationality       String   @default("") @db.VarChar(15)
-  birthState        String   @default("") @map("birth_state") @db.VarChar(45)
-  municipalityId    String?  @map("municipality_id") @db.VarChar(15)
-  birthMunicipality String   @default("") @map("birth_municipality") @db.VarChar(100)
-  personalPhone     String   @default("") @map("personal_phone") @db.VarChar(15)
-  personalEmail     String   @unique @default("") @map("personal_email") @db.VarChar(90)
-  rfc               String?  @unique @db.VarChar(15)
+  nationality       String   @db.VarChar(2)
+  birthState        String?  @db.VarChar(45)
+  municipalityId    Int?     @db.UnsignedInt
+  birthMunicipality String?  @db.VarChar(100)
+  phone             String   @db.VarChar(10)
+  personalEmail     String   @db.VarChar(90)
+  rfc               String?  @unique @db.VarChar(13)
+  photoUrl          String?  @db.VarChar(255)
 
   @@map("view_persons")
 }
@@ -1064,22 +1065,22 @@ view ViewUser {
   id                  Int       @unique @default(0) @db.UnsignedInt
   username            String    @unique @db.VarChar(125)
   password            String    @db.VarChar(255)
-  firstName           String    @map("first_name") @db.VarChar(45)
-  firstLastName       String    @map("first_last_name") @db.VarChar(25)
-  secondLastName      String    @default("") @map("second_last_name") @db.VarChar(25)
-  fullName            String    @default("") @map("full_name") @db.VarChar(97)
-  isActive            Boolean   @default(true) @map("is_active")
-  isFirstLogin        Boolean   @default(true) @map("is_first_login")
-  loginAttempts       Int       @default(0) @map("login_attempts")
-  lockedUntil         DateTime? @map("locked_until") @db.DateTime(0)
-  photoUrl            String?   @map("photo_url") @db.VarChar(255)
-  roleId              Int       @default(0) @map("role_id") @db.UnsignedInt
-  roleName            String    @map("role_name") @db.VarChar(50)
-  roleDescription     String    @map("role_description") @db.VarChar(250)
-  userTypeId          Int       @default(0) @map("user_type_id") @db.UnsignedTinyInt
-  userTypeCode        String    @map("user_type_code") @db.VarChar(20)
-  userTypeName        String    @map("user_type_name") @db.VarChar(60)
-  userTypeDescription String?   @map("user_type_description") @db.VarChar(255)
+  firstName           String?   @db.VarChar(45)
+  firstLastName       String?   @db.VarChar(25)
+  secondLastName      String?   @default("") @db.VarChar(25)
+  fullName            String    @default("") @db.VarChar(97)
+  isActive            Boolean   @default(true)
+  isFirstLogin        Boolean   @default(true)
+  loginAttempts       Int       @default(0)
+  lockedUntil         DateTime? @db.DateTime(0)
+  roleId              Int?      @default(0) @db.UnsignedInt
+  roleName            String?   @db.VarChar(50)
+  roleDescription     String?   @db.VarChar(250)
+  userTypeId          Int?      @default(0) @db.UnsignedTinyInt
+  userTypeCode        String?   @db.VarChar(20)
+  userTypeName        String?   @db.VarChar(60)
+  userTypeDescription String?   @db.VarChar(255)
+  photoUrl            String?   @db.VarChar(255)
 
   @@map("view_users")
 }
@@ -1117,7 +1118,7 @@ view ViewDemographic {
   id                 Int     @unique @default(0) @db.UnsignedInt
   personId           Int     @unique @default(0) @map("person_id") @db.UnsignedInt
   curp               String  @unique @db.Char(18)
-  fullName           String? @map("full_name") @db.VarChar(97)
+  fullName           String  @default("") @map("full_name") @db.VarChar(97)
   firstName          String  @map("first_name") @db.VarChar(45)
   firstLastName      String  @map("first_last_name") @db.VarChar(25)
   secondLastName     String  @default("") @map("second_last_name") @db.VarChar(25)
@@ -1149,7 +1150,7 @@ view ViewEmergencyContact {
 view ViewStudentAcademicBackground {
   id                  Int     @unique @default(0) @db.UnsignedInt
   studentId           Int     @map("student_id") @db.UnsignedInt
-  studentFullName     String  @default("") @map("student_full_name") @db.VarChar(97)
+  studentFullName     String? @map("student_full_name") @db.VarChar(97)
   studentCurp         String  @map("student_curp") @db.Char(18)
   studentCode         String? @unique @map("student_code") @db.VarChar(25)
   average             Decimal @default(0.00) @db.Decimal(4, 2)
@@ -1166,31 +1167,32 @@ view ViewStudentAcademicBackground {
 
 view ViewStudent {
   id                 Int     @unique @default(0) @db.UnsignedInt
-  personId           Int     @default(0) @map("person_id") @db.UnsignedInt
-  fullName           String? @map("full_name") @db.VarChar(97)
-  firstName          String  @map("first_name") @db.VarChar(45)
-  firstLastName      String  @map("first_last_name") @db.VarChar(25)
-  secondLastName     String  @default("") @map("second_last_name") @db.VarChar(25)
-  curp               String  @db.Char(18)
-  gender             String  @default("") @db.VarChar(15)
+  personId           Int      @default(0) @db.UnsignedInt
+  fullName           String?  @db.VarChar(97)
+  firstName          String   @db.VarChar(45)
+  firstLastName      String   @db.VarChar(25)
+  secondLastName     String   @default("") @db.VarChar(25)
+  curp               String   @db.Char(18)
+  gender             String   @db.Char(1)
   age                Int?
-  personalPhone      String  @default("") @map("personal_phone") @db.VarChar(15)
-  birthState         String  @default("") @map("birth_state") @db.VarChar(45)
-  birthMunicipality  String  @default("") @map("birth_municipality") @db.VarChar(100)
-  studentCode        String? @unique @map("student_code") @db.VarChar(25)
-  institutionalMail  String? @map("institutional_mail") @db.VarChar(125)
-  educationalProgram String? @map("educational_program") @db.VarChar(125)
-  programCode        String? @map("program_code") @db.Char(6)
-  studyPlan          String? @map("study_plan") @db.Char(4)
-  academicDiscipline String? @map("academic_discipline") @db.VarChar(45)
-  educationLevel     String? @map("education_level") @db.VarChar(45)
-  modality           String? @db.VarChar(50)
-  generation         Int?    @db.TinyInt
-  educationCycle     String? @map("education_cycle") @db.VarChar(10)
-  statusDescription  String  @default("") @map("status_description") @db.VarChar(25)
-  statusKey          String? @map("status_key") @db.Char(2)
-  isActive           Int     @default(0) @map("is_active")
-  currentSemester    Int     @default(0) @map("current_semester")
+  phone              String   @db.VarChar(10)
+  birthState         String?  @db.VarChar(45)
+  birthMunicipality  String?  @db.VarChar(100)
+  photoUrl           String?  @db.VarChar(255)
+  studentCode        String?  @db.VarChar(25)
+  institutionalMail  String?  @db.VarChar(125)
+  educationalProgram String?  @db.VarChar(125)
+  programCode        String?  @db.Char(6)
+  studyPlan          String?  @db.Char(4)
+  academicDiscipline String?  @db.VarChar(45)
+  educationLevel     String?  @db.VarChar(45)
+  modality           String?  @db.VarChar(50)
+  generation         Int?     @db.TinyInt
+  educationCycle     String?  @db.VarChar(10)
+  statusDescription  String?  @db.VarChar(25)
+  statusKey          String?  @db.Char(2)
+  isActive           Boolean? @default(true)
+  currentSemester    Int?     @db.UnsignedInt
 
   @@map("view_students")
 }
@@ -1222,7 +1224,7 @@ view ViewEnrollment {
   firstName          String   @db.VarChar(45)
   firstLastName      String   @db.VarChar(25)
   secondLastName     String   @default("") @db.VarChar(25)
-  fullName           String?  @db.VarChar(97)
+  fullName           String   @default("") @db.VarChar(97)
   gender             String   @db.Char(1)
   classCode          String   @db.Char(11)
   listNumber         Int      @default(0) @db.TinyInt
@@ -1247,12 +1249,13 @@ view ViewStaff {
   gender                 String?   @db.Char(1)
   birthDate              DateTime? @db.Date
   employeeAge            Int?
-  institutionalMail      String    @default("") @db.VarChar(100)
+  photoUrl               String?   @db.VarChar(255)
+  institutionalMail      String?   @db.VarChar(100)
   paymentUniqueKey       String    @default("No especificado") @db.VarChar(45)
-  systemEntryDate        String    @default("") @db.VarChar(15)
-  schoolEntryDate        String    @default("") @db.VarChar(15)
-  systemYears            String?   @db.VarChar(21)
-  schoolYears            String?   @db.VarChar(21)
+  systemEntryDate        DateTime? @db.Date
+  schoolEntryDate        DateTime? @db.Date
+  systemYears            BigInt?
+  schoolYears            BigInt?
   staffTypeName          String?   @db.VarChar(145)
   employmentTypeName     String?   @db.VarChar(45)
   employmentDurationName String?   @db.VarChar(45)
@@ -1325,14 +1328,14 @@ view ViewStaffComplete {
   gender               String?   @db.Char(1)
   birthDate            DateTime? @db.Date
   employeeAge          Int?
-  institutionalMail    String    @default("") @db.VarChar(100)
+  institutionalMail    String?   @db.VarChar(100)
   paymentUniqueKey     String    @default("No especificado") @db.VarChar(45)
-  systemEntryDate      String    @default("") @db.VarChar(15)
-  schoolEntryDate      String    @default("") @db.VarChar(15)
+  systemEntryDate      DateTime? @db.Date
+  schoolEntryDate      DateTime? @db.Date
   isActive             Boolean?
   staffStatus          String?   @db.VarChar(25)
-  systemYears          String?   @db.VarChar(21)
-  schoolYears          String?   @db.VarChar(21)
+  systemYears          BigInt?
+  schoolYears          BigInt?
   staffType            String?   @db.VarChar(145)
   employmentType       String?   @db.VarChar(45)
   employmentDuration   String?   @db.VarChar(45)
@@ -1443,7 +1446,7 @@ view ViewGrade {
   firstName        String?  @db.VarChar(45)
   firstLastName    String?  @db.VarChar(25)
   secondLastName   String?  @default("") @db.VarChar(25)
-  gender           String?  @default("") @db.VarChar(15)
+  gender           String?  @db.Char(1)
   studentCode      String?  @db.VarChar(25)
   classCode        String?  @db.Char(11)
   subjectName      String?  @db.VarChar(125)
@@ -1514,7 +1517,7 @@ view ViewStudentWithdrawal {
   studentStatusKey   String?   @db.Char(2)
   studentStatus      String?   @db.VarChar(25)
   studentCode        String?   @unique @db.VarChar(25)
-  studentFullName    String?   @default("") @db.VarChar(97)
+  studentFullName    String?   @db.VarChar(97)
   studentCurp        String?   @unique @db.Char(18)
   classCode          String?   @db.Char(11)
   semiannualPeriod   String?   @db.VarChar(30)

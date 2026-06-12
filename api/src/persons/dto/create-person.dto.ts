@@ -1,6 +1,6 @@
 import { IntersectionType, PickType } from '@nestjs/mapped-types';
 import { Transform } from 'class-transformer';
-import { IsOptional, Matches } from 'class-validator';
+import { IsOptional, IsString, Matches } from 'class-validator';
 import { OptionalPositiveInt, StrictISODate } from '@/common/decorators';
 import { ContactFieldsDto, PersonalFieldsDto } from '@/common/dtos';
 
@@ -37,4 +37,9 @@ export class CreatePersonDto extends IntersectionType(
     message: 'El campo |nacionalidad| debe ser una letra.',
   })
   nationality?: string;
+
+  // 🔹 FOTO DE PERFIL (OPCIONAL EN BODY)
+  @IsOptional()
+  @IsString({ message: 'La ruta de la foto de perfil debe ser una cadena de texto.' })
+  photoUrl?: string;
 }

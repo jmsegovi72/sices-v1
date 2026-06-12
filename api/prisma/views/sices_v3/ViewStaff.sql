@@ -17,28 +17,13 @@ SELECT
   `p`.`gender` AS `gender`,
   `p`.`birth_date` AS `birthDate`,
   timestampdiff(YEAR, `p`.`birth_date`, curdate()) AS `employeeAge`,
-  coalesce(`s`.`institutional_mail`, 'No especificado') AS `institutionalMail`,
+  `p`.`photo_url` AS `photoUrl`,
+  `s`.`institutional_mail` AS `institutionalMail`,
   `s`.`payment_unique_key` AS `paymentUniqueKey`,
-  IFNULL(
-    date_format(`s`.`system_entry_date`, '%Y-%m-%d'),
-    'No especificado'
-  ) AS `systemEntryDate`,
-  IFNULL(
-    date_format(`s`.`school_entry_date`, '%Y-%m-%d'),
-    'No especificado'
-  ) AS `schoolEntryDate`,
-(
-    CASE
-      WHEN (`s`.`system_entry_date` IS NOT NULL) THEN timestampdiff(YEAR, `s`.`system_entry_date`, curdate())
-      ELSE 'No especificado'
-    END
-  ) AS `systemYears`,
-(
-    CASE
-      WHEN (`s`.`school_entry_date` IS NOT NULL) THEN timestampdiff(YEAR, `s`.`school_entry_date`, curdate())
-      ELSE 'No especificado'
-    END
-  ) AS `schoolYears`,
+  `s`.`system_entry_date` AS `systemEntryDate`,
+  `s`.`school_entry_date` AS `schoolEntryDate`,
+  timestampdiff(YEAR, `s`.`system_entry_date`, curdate()) AS `systemYears`,
+  timestampdiff(YEAR, `s`.`school_entry_date`, curdate()) AS `schoolYears`,
   `st`.`name` AS `staffTypeName`,
   `et`.`name` AS `employmentTypeName`,
   `ed`.`name` AS `employmentDurationName`,
