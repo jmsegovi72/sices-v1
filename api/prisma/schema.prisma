@@ -1019,28 +1019,26 @@ model StaffStatus {
 }
 
 model DocumentType {
-  id        Int      @id @default(autoincrement()) @map("id") @db.UnsignedInt
-  name      String   @unique(map: "name") @map("name") @db.VarChar(100)
-  createdAt DateTime @default(now()) @map("created_at") @db.Timestamp(0)
-  updatedAt DateTime @default(now()) @map("updated_at") @db.Timestamp(0)
-
+  id                Int               @id @default(autoincrement()) @map("id") @db.UnsignedInt
+  name              String            @unique(map: "name") @map("name") @db.VarChar(100)
+  createdAt         DateTime          @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt         DateTime          @default(now()) @map("updated_at") @db.Timestamp(0)
   student_documents StudentDocument[]
 
   @@map("document_types")
 }
 
 model StudentDocument {
-  id             Int      @id @default(autoincrement()) @map("id") @db.UnsignedInt
-  studentId      Int      @map("student_id") @db.UnsignedInt
-  documentTypeId Int      @map("document_type_id") @db.UnsignedInt
-  deliveryDate   DateTime @map("delivery_date") @db.Date
-  filePath       String?  @map("file_path") @db.VarChar(500)
-  notes          String?  @map("notes") @db.Text
-  createdBy      Int      @map("created_by") @db.UnsignedInt
-  updatedBy      Int      @map("updated_by") @db.UnsignedInt
-  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamp(0)
-  updatedAt      DateTime @default(now()) @map("updated_at") @db.Timestamp(0)
-
+  id                                        Int          @id @default(autoincrement()) @map("id") @db.UnsignedInt
+  studentId                                 Int          @map("student_id") @db.UnsignedInt
+  documentTypeId                            Int          @map("document_type_id") @db.UnsignedInt
+  deliveryDate                              DateTime     @map("delivery_date") @db.Date
+  filePath                                  String?      @map("file_path") @db.VarChar(500)
+  notes                                     String?      @map("notes") @db.Text
+  createdBy                                 Int          @map("created_by") @db.UnsignedInt
+  updatedBy                                 Int          @map("updated_by") @db.UnsignedInt
+  createdAt                                 DateTime     @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt                                 DateTime     @default(now()) @map("updated_at") @db.Timestamp(0)
   users_student_documents_created_byTousers User         @relation("student_documents_created_byTousers", fields: [createdBy], references: [id], map: "fk_student_documents_created_by")
   document_types                            DocumentType @relation(fields: [documentTypeId], references: [id], map: "fk_student_documents_document_type_id")
   students                                  Student      @relation(fields: [studentId], references: [id], map: "fk_student_documents_student_id")
@@ -1106,7 +1104,7 @@ view ViewUser {
   firstName           String?   @db.VarChar(45)
   firstLastName       String?   @db.VarChar(25)
   secondLastName      String?   @default("") @db.VarChar(25)
-  fullName            String    @default("") @db.VarChar(97)
+  fullName            String?   @db.VarChar(97)
   isActive            Boolean   @default(true)
   isFirstLogin        Boolean   @default(true)
   loginAttempts       Int       @default(0)
@@ -1119,6 +1117,7 @@ view ViewUser {
   userTypeName        String?   @db.VarChar(60)
   userTypeDescription String?   @db.VarChar(255)
   photoUrl            String?   @db.VarChar(255)
+  gender              String?   @db.Char(1)
 
   @@map("view_users")
 }
@@ -1204,7 +1203,7 @@ view ViewStudentAcademicBackground {
 }
 
 view ViewStudent {
-  id                 Int      @unique @default(0) @db.UnsignedInt
+  id                 Int     @unique @default(0) @db.UnsignedInt
   personId           Int      @default(0) @db.UnsignedInt
   fullName           String?  @db.VarChar(97)
   firstName          String   @db.VarChar(45)
@@ -1578,14 +1577,14 @@ view ViewStudentWithdrawal {
 view viewStudentDocument {
   id             Int      @default(0) @db.UnsignedInt
   studentCode    String?  @db.VarChar(25)
-  studentName    String?  @db.VarChar(97)
+  studentName    String   @default("") @db.VarChar(97)
   studentCurp    String   @db.Char(18)
   documentName   String   @db.VarChar(100)
   deliveryDate   DateTime @db.Date
   filePath       String?  @db.VarChar(500)
   notes          String?  @db.Text
-  createdByName  String?  @db.VarChar(97)
-  updatedByName  String?  @db.VarChar(97)
+  createdByName  String   @default("") @db.VarChar(97)
+  updatedByName  String   @default("") @db.VarChar(97)
   studentId      Int      @db.UnsignedInt
   documentTypeId Int      @db.UnsignedInt
 

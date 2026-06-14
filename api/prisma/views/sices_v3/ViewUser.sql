@@ -25,7 +25,8 @@ SELECT
   `ut`.`code` AS `userTypeCode`,
   `ut`.`name` AS `userTypeName`,
   `ut`.`description` AS `userTypeDescription`,
-  `p`.`photo_url` AS `photoUrl`
+  `p`.`photo_url` AS `photoUrl`,
+  `p`.`gender` AS `gender`
 FROM
   (
     (
