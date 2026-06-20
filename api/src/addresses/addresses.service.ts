@@ -421,11 +421,18 @@ export class AddressesService {
     const relationalData = transformRelationIds(dataToTransform);
 
     // 🔹 3. Construir objeto final de actualización
-    const dataToUpdate = {
+    const dataToUpdate: Record<string, any> = {
       ...relationalData,
       // Nombre exacto de la relación en tu modelo Address
       users_addresses_updated_byTousers: { connect: { id: userId } },
     };
+
+    const optionalFields = ['exteriorNumber', 'interiorNumber', 'block', 'betweenStreets'];
+    for (const field of optionalFields) {
+      if (dataToUpdate[field] === null) {
+        dataToUpdate[field] = '';
+      }
+    }
 
     this.logger.debug(
       { idValue, dataToUpdate },
