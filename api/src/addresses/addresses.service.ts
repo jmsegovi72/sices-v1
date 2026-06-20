@@ -78,14 +78,25 @@ export class AddressesService {
     );
 
     // 🔹 3. Crear registro
-    return await httpRequestCreate<typeof dtoToSave, T>({
+    const result = await httpRequestCreate<typeof dtoToSave, any>({
       serviceName: AddressesService.name,
       methodName: 'create',
       model: client.address,
       logger: this.logger,
       data: dtoToSave,
-      returnData,
+      returnData: true, // Forzar la obtención del ID para la vista
     });
+
+    if (result.success && returnData) {
+      const viewData = await this.prisma.viewAddress.findUnique({
+        where: { id: result.data.id },
+      });
+      result.data = viewData;
+    } else if (!returnData) {
+      delete result.data;
+    }
+
+    return result;
   }
   /* ============================================================
  🆕 CREATE MANY ADDRESSES (SICES V3)
@@ -439,14 +450,26 @@ export class AddressesService {
       'Datos finales para actualización de dirección (SICES V3)',
     );
 
-    return await httpRequestUpdate<typeof dataToUpdate, R>({
+    // 🔹 4. Actualizar registro
+    const result = await httpRequestUpdate<typeof dataToUpdate, any>({
       serviceName: AddressesService.name,
       model: client.address,
       logger: this.logger,
       idValue,
       data: dataToUpdate,
-      returnData,
+      returnData: true, // Forzar la obtención del ID para la vista
       idFieldName,
     });
+
+    if (result.success && returnData) {
+      const viewData = await this.prisma.viewAddress.findUnique({
+        where: { id: Number(idValue) },
+      });
+      result.data = viewData;
+    } else if (!returnData) {
+      delete result.data;
+    }
+
+    return result;
   }
 }
