@@ -545,11 +545,15 @@ export class PersonsService {
     // 🔹 5. Construir data final
     // extraData sobreescribe relationalData en caso de conflicto
     // (ej: states derivado del municipio tiene prioridad sobre stateId del DTO)
-    const dataToUpdate = {
+    const dataToUpdate: Record<string, any> = {
       ...relationalData,
       ...extraData,
       users_persons_updated_byTousers: { connect: { id: userId } }, // ← directo aquí
     };
+
+    if (dataToUpdate.photoUrl === '' || dataToUpdate.photoUrl === null) {
+      dataToUpdate.photoUrl = null;
+    }
 
     this.logger.debug(
       { idValue, dataToUpdate },
