@@ -46,7 +46,7 @@ export class AddressesController {
       userId: user.id,
       dto: createAddressDto,
       options: {
-        returnData: false,
+        returnData: true,
       },
     });
   }
@@ -165,7 +165,7 @@ paginación segura y control de acceso por módulo.
       id,
       dto: updateAddressDto,
       options: {
-        returnData: false, // Mismo comportamiento que en ZipCodes
+        returnData: true, // Mismo comportamiento que en ZipCodes
       },
     });
   }
