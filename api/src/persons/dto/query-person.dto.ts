@@ -4,6 +4,7 @@ import {
   PersonalFieldsDto,
   QueryBaseDto,
 } from '@/common/dtos';
+import { OptionalBooleanString } from '@/common/decorators';
 
 // query-person.dto.ts
 export class QueryPersonDto extends IntersectionType(
@@ -24,4 +25,7 @@ export class QueryPersonDto extends IntersectionType(
   ),
   // 🔹 QueryBaseDto → searchTerm, isActive, limit, page
   QueryBaseDto,
-) {}
+) {
+  @OptionalBooleanString({ fieldName: 'hasAddress' })
+  hasAddress?: boolean;
+}

@@ -423,6 +423,24 @@ export class PersonsService {
       orSearch: ['fullName', 'curp', 'personalEmail'],
     });
 
+    // 🔹 Filtro personalizado por Dirección
+    if (filters.hasAddress !== undefined) {
+      const addresses = await this.prisma.address.findMany({
+        select: { personId: true },
+      });
+      const personIdsWithAddress = addresses.map((a) => a.personId);
+
+      if (filters.hasAddress) {
+        whereCondition.id = {
+          in: personIdsWithAddress,
+        };
+      } else {
+        whereCondition.id = {
+          notIn: personIdsWithAddress,
+        };
+      }
+    }
+
     // 🔹 Query Prisma
     const queryOptions: Prisma.ViewPersonFindManyArgs = {
       ...(pagination.limit > 0 && {
