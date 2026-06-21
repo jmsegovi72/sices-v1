@@ -47,7 +47,7 @@ export class DemographicsController {
     return await this.demographicsService.create({
       userId: user.id,
       dto: createDemographicDto,
-      options: { returnData: false },
+      options: { returnData: true },
     });
   }
   /* ============================================================
@@ -124,10 +124,10 @@ export class DemographicsController {
     @Body() updateDemographicDto: UpdateDemographicDto,
   ): Promise<ApiResponse<any>> {
     return await this.demographicsService.update({
-      userId: user.id,
-      id,
-      dto: updateDemographicDto,
-      options: { returnData: false },
+       userId: user.id,
+       id,
+       dto: updateDemographicDto,
+       options: { returnData: true },
     });
   }
 }
