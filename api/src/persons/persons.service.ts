@@ -441,14 +441,30 @@ export class PersonsService {
       });
       const personIdsWithAddress = addresses.map((a) => a.personId);
 
-      if (filters.hasAddress) {
-        whereCondition.id = {
-          in: personIdsWithAddress,
-        };
+      whereCondition.id = filters.hasAddress
+        ? { in: personIdsWithAddress }
+        : { notIn: personIdsWithAddress };
+    }
+
+    // 🔹 Filtro personalizado por Demografía
+    if (filters.hasDemographic !== undefined) {
+      const demographics = await this.prisma.demographic.findMany({
+        select: { personId: true },
+      });
+      const personIdsWithDemographic = demographics.map((d) => d.personId);
+
+      const condition = filters.hasDemographic
+        ? { in: personIdsWithDemographic }
+        : { notIn: personIdsWithDemographic };
+
+      if (whereCondition.id) {
+        whereCondition.AND = [
+          { id: whereCondition.id },
+          { id: condition },
+        ];
+        delete whereCondition.id;
       } else {
-        whereCondition.id = {
-          notIn: personIdsWithAddress,
-        };
+        whereCondition.id = condition;
       }
     }
 

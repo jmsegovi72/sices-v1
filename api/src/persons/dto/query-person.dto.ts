@@ -28,4 +28,7 @@ export class QueryPersonDto extends IntersectionType(
 ) {
   @OptionalBooleanString({ fieldName: 'hasAddress' })
   hasAddress?: boolean;
+
+  @OptionalBooleanString({ fieldName: 'hasDemographic' })
+  hasDemographic?: boolean;
 }
