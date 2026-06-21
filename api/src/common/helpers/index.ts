@@ -1,8 +1,8 @@
 export { extractCreateParams, buildWherePlain, extractUpdateParams, extractFindParams, buildWhereMany } from './database.helper';
 export { formatString, isEven, extractDataFromCURP } from './helper-functions.helper';
 export type { CurpData } from './helper-functions.helper';
-export { httpRequestBatchUpdate, httpRequestCreate, httpRequestCreateMany, httpRequestFindFirst, httpRequestFindMany, httpRequestFindUnique, httpRequestUpdate } from './http-request-functions';
-export type { BatchUpdateParams, HttpRequestCreateParams, HttpRequestCreateManyParams, HttpRequestFindFirstParams, HttpRequestFindManyParams, HttpRequestFindUniqueParams, HttpRequestUpdateParams, UpdateEntityParams } from './http-request-functions';
+export { httpRequestBatchUpdate, httpRequestCreateMany, httpRequestCreate, httpRequestFindFirst, httpRequestFindMany, httpRequestFindUnique, httpRequestUpdate } from './http-request-functions';
+export type { BatchUpdateParams, HttpRequestCreateManyParams, HttpRequestCreateParams, HttpRequestFindFirstParams, HttpRequestFindManyParams, HttpRequestFindUniqueParams, HttpRequestUpdateParams, UpdateEntityParams } from './http-request-functions';
 export { mapUserResponse } from './mapUserResponse.helper';
 export { resolvePagination } from './pagination.helper';
 export type { PaginationResult } from './pagination.helper';

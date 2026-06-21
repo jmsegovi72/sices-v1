@@ -96,7 +96,7 @@ export class CatalogsController {
      ------------------------------------------------------------
      📌 Devuelve la lista completa de estados civiles.
      ============================================================ */
-  @Get('marital-statuses')
+  @Get(['marital-statuses', 'catalog/marital-statuses'])
   @UseInterceptors(TransformDataInterceptor)
   async getMaritalStatuses(): Promise<ApiResponse<any[]>> {
     return await this.catalogsService.getMaritalStatuses();
@@ -107,7 +107,7 @@ export class CatalogsController {
      ------------------------------------------------------------
      📌 Devuelve la lista completa de lenguas indígenas.
      ============================================================ */
-  @Get('indigenous-languages')
+  @Get(['indigenous-languages', 'catalog/indigenous-languages'])
   @UseInterceptors(TransformDataInterceptor)
   async getIndigenousLanguages(): Promise<ApiResponse<any[]>> {
     return await this.catalogsService.getIndigenousLanguages();
@@ -118,7 +118,7 @@ export class CatalogsController {
      ------------------------------------------------------------
      📌 Devuelve la lista completa de lenguas extranjeras.
      ============================================================ */
-  @Get('foreign-languages')
+  @Get(['foreign-languages', 'catalog/foreign-languages'])
   @UseInterceptors(TransformDataInterceptor)
   async getForeignLanguages(): Promise<ApiResponse<any[]>> {
     return await this.catalogsService.getForeignLanguages();
@@ -129,7 +129,7 @@ export class CatalogsController {
      ------------------------------------------------------------
      📌 Devuelve la lista completa de condiciones especiales.
      ============================================================ */
-  @Get('special-conditions')
+  @Get(['special-conditions', 'catalog/special-conditions'])
   @UseInterceptors(TransformDataInterceptor)
   async getSpecialConditions(): Promise<ApiResponse<any[]>> {
     return await this.catalogsService.getSpecialConditions();
