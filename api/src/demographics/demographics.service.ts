@@ -149,19 +149,36 @@ Listado de datos demográficos con búsqueda por nombre.
       Prisma.ViewDemographicWhereInput,
       QueryDemographicDto
     >(filters, {
-      orSearch: ['fullName'],
+      orSearch: ['fullName', 'curp'],
       equals: {
         isIndigenous: 'isIndigenous',
         isAfroDescendant: 'isAfroDescendant',
+        gender: 'gender',
       },
       contains: {
         fullName: 'fullName',
+        curp: 'curp',
         maritalStatus: 'maritalStatus',
         indigenousLanguage: 'indigenousLanguage',
         foreignLanguage: 'foreignLanguage',
         specialCondition: 'specialCondition',
       },
     });
+
+    // 🔹 Filtros de rango de edad
+    if (filters.minAge !== undefined) {
+      whereCondition.age = {
+        ...whereCondition.age,
+        gte: Number(filters.minAge),
+      };
+    }
+
+    if (filters.maxAge !== undefined) {
+      whereCondition.age = {
+        ...whereCondition.age,
+        lte: Number(filters.maxAge),
+      };
+    }
 
     // 🔹 Query Prisma
     const queryOptions: Prisma.ViewDemographicFindManyArgs = {

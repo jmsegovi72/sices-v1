@@ -1,6 +1,7 @@
 import {
   OptionalBooleanString,
   OptionalNonEmptyString,
+  OptionalPositiveInt,
 } from '@/common/decorators';
 import { QueryBaseDto } from '@/common/dtos';
 
@@ -13,6 +14,18 @@ export class QueryDemographicDto extends QueryBaseDto {
 
   @OptionalNonEmptyString({ fieldName: 'Nombre completo' })
   fullName?: string;
+
+  @OptionalNonEmptyString({ fieldName: 'CURP' })
+  curp?: string;
+
+  @OptionalNonEmptyString({ fieldName: 'Género' })
+  gender?: string;
+
+  @OptionalPositiveInt({ fieldName: 'Edad mínima' })
+  minAge?: number;
+
+  @OptionalPositiveInt({ fieldName: 'Edad máxima' })
+  maxAge?: number;
 
   @OptionalNonEmptyString({ fieldName: 'Estado civil' })
   maritalStatus?: string;
