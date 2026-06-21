@@ -135,14 +135,25 @@ export class PersonsService {
     );
 
     // 🔹 6. Crear registro
-    return await httpRequestCreate<typeof dtoToSave, T>({
+    const result = await httpRequestCreate<typeof dtoToSave, any>({
       serviceName: PersonsService.name,
       methodName: 'create',
       model: client.person,
       logger: this.logger,
       data: dtoToSave,
-      returnData,
+      returnData: true, // Forzar la obtención del ID para la vista
     });
+
+    if (result.success && returnData) {
+      const viewData = await this.prisma.viewPerson.findUnique({
+        where: { id: result.data.id },
+      });
+      result.data = viewData;
+    } else if (!returnData) {
+      delete result.data;
+    }
+
+    return result;
   }
 
   /* ============================================================
@@ -560,15 +571,26 @@ export class PersonsService {
       'Datos finales para actualización de persona',
     );
 
-    return await httpRequestUpdate<typeof dataToUpdate, R>({
+    const result = await httpRequestUpdate<typeof dataToUpdate, any>({
       serviceName: PersonsService.name,
       model: client.person,
       logger: this.logger,
       idValue,
       data: dataToUpdate,
-      returnData,
+      returnData: true, // Forzar la obtención del ID para la vista
       idFieldName,
     });
+
+    if (result.success && returnData) {
+      const viewData = await this.prisma.viewPerson.findUnique({
+        where: { id: Number(idValue) },
+      });
+      result.data = viewData;
+    } else if (!returnData) {
+      delete result.data;
+    }
+
+    return result;
   }
 
   /* ============================================================

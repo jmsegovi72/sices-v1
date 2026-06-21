@@ -55,7 +55,7 @@ export class PersonsController {
       userId: user.id,
       dto: createPersonDto,
       options: {
-        returnData: false,
+        returnData: true,
       },
     });
   }
@@ -197,7 +197,7 @@ export class PersonsController {
       dto: updatePersonDto,
       userId: user.id,
       options: {
-        returnData: false,
+        returnData: true,
       },
     });
   }
