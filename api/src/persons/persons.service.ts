@@ -434,16 +434,20 @@ export class PersonsService {
       orSearch: ['fullName', 'curp', 'personalEmail'],
     });
 
+    // 🔹 Colección de condiciones dinámicas sobre el ID de persona
+    const idConditions: any[] = [];
+
     // 🔹 Filtro personalizado por Dirección
     if (filters.hasAddress !== undefined) {
       const addresses = await this.prisma.address.findMany({
         select: { personId: true },
       });
       const personIdsWithAddress = addresses.map((a) => a.personId);
-
-      whereCondition.id = filters.hasAddress
-        ? { in: personIdsWithAddress }
-        : { notIn: personIdsWithAddress };
+      idConditions.push({
+        id: filters.hasAddress
+          ? { in: personIdsWithAddress }
+          : { notIn: personIdsWithAddress },
+      });
     }
 
     // 🔹 Filtro personalizado por Demografía
@@ -452,20 +456,34 @@ export class PersonsService {
         select: { personId: true },
       });
       const personIdsWithDemographic = demographics.map((d) => d.personId);
+      idConditions.push({
+        id: filters.hasDemographic
+          ? { in: personIdsWithDemographic }
+          : { notIn: personIdsWithDemographic },
+      });
+    }
 
-      const condition = filters.hasDemographic
-        ? { in: personIdsWithDemographic }
-        : { notIn: personIdsWithDemographic };
+    // 🔹 Filtro personalizado por Contactos de Emergencia
+    if (filters.hasEmergencyContact !== undefined) {
+      const emergencyContacts = await this.prisma.emergencyContact.findMany({
+        select: { personId: true },
+      });
+      const personIdsWithEmergencyContact = emergencyContacts.map((c) => c.personId);
+      idConditions.push({
+        id: filters.hasEmergencyContact
+          ? { in: personIdsWithEmergencyContact }
+          : { notIn: personIdsWithEmergencyContact },
+      });
+    }
 
-      if (whereCondition.id) {
-        whereCondition.AND = [
-          { id: whereCondition.id },
-          { id: condition },
-        ];
-        delete whereCondition.id;
-      } else {
-        whereCondition.id = condition;
-      }
+    // 🔹 Combinar las condiciones de ID en whereCondition
+    if (idConditions.length === 1) {
+      whereCondition.id = idConditions[0].id;
+    } else if (idConditions.length > 1) {
+      whereCondition.AND = [
+        ...(whereCondition.AND || []),
+        ...idConditions,
+      ];
     }
 
     // 🔹 Query Prisma

@@ -31,4 +31,7 @@ export class QueryPersonDto extends IntersectionType(
 
   @OptionalBooleanString({ fieldName: 'hasDemographic' })
   hasDemographic?: boolean;
+
+  @OptionalBooleanString({ fieldName: 'hasEmergencyContact' })
+  hasEmergencyContact?: boolean;
 }
