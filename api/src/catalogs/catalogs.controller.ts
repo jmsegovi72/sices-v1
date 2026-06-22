@@ -72,7 +72,7 @@ export class CatalogsController {
      ------------------------------------------------------------
      📌 Devuelve la lista completa de estados de la República Mexicana.
      ============================================================ */
-  @Get('states')
+  @Get(['states', 'catalog/states'])
   @UseInterceptors(TransformDataInterceptor)
   async getStates(): Promise<ApiResponse<any[]>> {
     return await this.catalogsService.getStates();
@@ -83,7 +83,7 @@ export class CatalogsController {
      ------------------------------------------------------------
      📌 Devuelve los municipios filtrados por estado o búsqueda.
      ============================================================ */
-  @Get('municipalities')
+  @Get(['municipalities', 'catalog/municipalities'])
   @UseInterceptors(TransformDataInterceptor)
   async getMunicipalities(
     @Query() query: QueryMunicipalityDto,
