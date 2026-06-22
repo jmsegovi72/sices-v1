@@ -74,14 +74,25 @@ export class EmergencyContactsService {
     );
 
     // 🔹 3. Crear registro mediante httpRequestCreate
-    return await httpRequestCreate<typeof dtoToSave, T>({
+    const result = await httpRequestCreate<typeof dtoToSave, any>({
       serviceName: EmergencyContactsService.name,
       methodName: 'create',
       model: client.emergencyContact, // Nombre del modelo en Prisma
       logger: this.logger,
       data: dtoToSave,
-      returnData,
+      returnData: true, // Forzar la obtención del ID para la vista
     });
+
+    if (result.success && returnData) {
+      const viewData = await this.prisma.viewEmergencyContact.findUnique({
+        where: { id: result.data.id },
+      });
+      result.data = viewData;
+    } else if (!returnData) {
+      delete result.data;
+    }
+
+    return result;
   }
   /* ============================================================
    📞 CREATE MANY CONTACTS (SICES V3)
@@ -366,14 +377,25 @@ export class EmergencyContactsService {
     );
 
     // 🔹 4. Ejecución mediante la utilidad estandarizada
-    return await httpRequestUpdate<typeof dataToUpdate, R>({
+    const result = await httpRequestUpdate<typeof dataToUpdate, any>({
       serviceName: EmergencyContactsService.name,
       model: client.emergencyContact,
       logger: this.logger,
       idValue,
       data: dataToUpdate,
-      returnData,
+      returnData: true, // Forzar la obtención del ID para la vista
       idFieldName,
     });
+
+    if (result.success && returnData) {
+      const viewData = await this.prisma.viewEmergencyContact.findUnique({
+        where: { id: Number(idValue) },
+      });
+      result.data = viewData;
+    } else if (!returnData) {
+      delete result.data;
+    }
+
+    return result;
   }
 }

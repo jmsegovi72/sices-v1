@@ -103,6 +103,17 @@ export class CatalogsController {
   }
 
   /* ============================================================
+     📋 GET /contact-relationships
+     ------------------------------------------------------------
+     📌 Devuelve la lista completa de parentescos de contactos de emergencia.
+     ============================================================ */
+  @Get(['contact-relationships', 'catalog/contact-relationships'])
+  @UseInterceptors(TransformDataInterceptor)
+  async getContactRelationships(): Promise<ApiResponse<any[]>> {
+    return await this.catalogsService.getContactRelationships();
+  }
+
+  /* ============================================================
      📋 GET /indigenous-languages
      ------------------------------------------------------------
      📌 Devuelve la lista completa de lenguas indígenas.

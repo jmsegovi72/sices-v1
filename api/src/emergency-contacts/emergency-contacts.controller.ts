@@ -52,7 +52,7 @@ export class EmergencyContactsController {
       userId: user.id,
       dto: createDto,
       options: {
-        returnData: false,
+        returnData: true,
       },
     });
   }
@@ -155,7 +155,7 @@ export class EmergencyContactsController {
       id, // ID del registro a actualizar
       dto: updateDto, // Datos parciales a modificar
       options: {
-        returnData: false, // Por si necesitas el registro actualizado de vuelta
+        returnData: true, // Por si necesitas el registro actualizado de vuelta
       },
     });
   }

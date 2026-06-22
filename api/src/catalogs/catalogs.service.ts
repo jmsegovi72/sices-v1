@@ -259,6 +259,30 @@ export class CatalogsService {
   }
 
   /* ============================================================
+     📋 GET ALL CONTACT RELATIONSHIPS (PARENTESCOS)
+     ------------------------------------------------------------
+     📌 Devuelve todos los parentescos ordenados alfabéticamente.
+     ============================================================ */
+  async getContactRelationships<T>(): Promise<ApiResponse<T[]>> {
+    const queryOptions: Prisma.ContactRelationshipFindManyArgs = {
+      select: {
+        id: true,
+        name: true,
+      },
+      orderBy: {
+        name: 'asc',
+      },
+    };
+
+    return await httpRequestFindMany<T>({
+      serviceName: CatalogsService.name,
+      model: this.prisma.contactRelationship,
+      logger: this.logger,
+      queryOptions,
+    });
+  }
+
+  /* ============================================================
      📋 GET ALL INDIGENOUS LANGUAGES
      ------------------------------------------------------------
      📌 Devuelve todas las lenguas indígenas ordenadas por nombre.
