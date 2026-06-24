@@ -70,7 +70,7 @@ export class StudentsService {
 
     // 🔹 2. Obtener persona via PersonsService (verificar existencia)
     const personResponse = await this.personsService.findOneBy<ViewPerson>({
-      searchDto: plainToClass(SearchDto, { search: `id:${data.personId}` }),
+      searchDto: plainToClass(SearchDto, { search: String(data.personId) }),
     });
 
     if (!personResponse.data) {
