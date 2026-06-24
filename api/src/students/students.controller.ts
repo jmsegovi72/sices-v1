@@ -47,13 +47,21 @@ export class StudentsController {
     @GetUser() user: UserFromView,
     @Body() createStudentDto: CreateStudentDto,
   ): Promise<ApiResponse<any>> {
-    return await this.studentsService.create({
+    const response = await this.studentsService.create<any>({
       userId: user.id,
       dto: createStudentDto,
       options: {
-        returnData: false,
+        returnData: true,
       },
     });
+
+    if (response.success && response.data) {
+      response.data = {
+        ...response.data,
+        email: response.data.institutionalMail, // Frontend compatibility
+      };
+    }
+    return response;
   }
 
   @Post('/bulk')
@@ -128,14 +136,22 @@ export class StudentsController {
     @Param('id', ParsePositiveIntPipe) id: number,
     @Body() updateStudentDto: UpdateStudentDto,
   ): Promise<ApiResponse<any>> {
-    return await this.studentsService.update({
+    const response = await this.studentsService.update({
       userId: user.id,
       id,
       dto: updateStudentDto,
       options: {
-        returnData: false,
+        returnData: true,
       },
     });
+
+    if (response.success && response.data) {
+      response.data = {
+        ...response.data,
+        email: response.data.institutionalMail, // Frontend compatibility
+      };
+    }
+    return response;
   }
   /* ============================================================
    📧 UPDATE BATCH STUDENT EMAILS (SICES V3)

@@ -146,7 +146,7 @@ export class CatalogsController {
     return await this.catalogsService.getSpecialConditions();
   }
 
-  @Get('educational-programs')
+  @Get(['educational-programs', 'catalog/educational-programs'])
   @UseInterceptors(TransformDataInterceptor)
   async getEducationalPrograms(): Promise<ApiResponse<any[]>> {
     return await this.catalogsService.getEducationalPrograms();
@@ -230,19 +230,34 @@ export class CatalogsController {
     return await this.catalogsService.getAcademicDisciplines();
   }
 
-  @Get('catalog/student-generations')
+  @Get(['student-generations', 'catalog/student-generations'])
   @UseInterceptors(TransformDataInterceptor)
   async getStudentGenerations(): Promise<ApiResponse<any[]>> {
-    return await this.catalogsService.getStudentGenerations();
+    const response = await this.catalogsService.getStudentGenerations();
+    if (response.success && Array.isArray(response.data)) {
+      response.data = response.data.map((item: any) => ({
+        ...item,
+        generation: item.generationName, // Frontend compatibility
+      }));
+    }
+    return response;
   }
 
-  @Get('catalog/student-statuses')
+  @Get(['student-statuses', 'catalog/student-statuses'])
   @UseInterceptors(TransformDataInterceptor)
   async getStudentStatuses(): Promise<ApiResponse<any[]>> {
-    return await this.catalogsService.getStudentStatuses();
+    const response = await this.catalogsService.getStudentStatuses();
+    if (response.success && Array.isArray(response.data)) {
+      response.data = response.data.map((item: any) => ({
+        ...item,
+        status: item.description, // Frontend compatibility
+        key: item.statusKey,       // Frontend compatibility
+      }));
+    }
+    return response;
   }
 
-  @Get('catalog/study-plans')
+  @Get(['study-plans', 'catalog/study-plans'])
   @UseInterceptors(TransformDataInterceptor)
   async getStudyPlans(
     @Query() query: QueryStudyPlanDto,

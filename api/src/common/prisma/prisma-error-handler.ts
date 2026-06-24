@@ -77,8 +77,16 @@ export class PrismaErrorHandler {
           const humanField = humanFriendlyFields[codeField] || codeField;
 
           // Mensaje humanizado contextual
+          const targetFields = Array.isArray(error.meta?.target) ? error.meta.target : [error.meta?.target];
+          const hasPersonAndProgram = targetFields.includes('personId') && targetFields.includes('educationalProgramId');
+          const isUniquePersonProgram = hasPersonAndProgram || 
+                                        targetField === 'unique_person_educational_program' || 
+                                        errorKey === 'unique_person_educational_program';
+
           let contextualMessage = `El valor '${extractedValue}' ya está asignado al campo '${humanField}'.`;
-          if (codeField === 'username' || codeField === 'institutionalMail') {
+          if (isUniquePersonProgram) {
+            contextualMessage = `La persona ya está registrada en este programa.`;
+          } else if (codeField === 'username' || codeField === 'institutionalMail') {
             contextualMessage = `El correo institucional '${extractedValue}' ya está registrado para otro usuario.`;
           } else if (codeField === 'personalEmail' || codeField === 'email') {
             contextualMessage = `El correo electrónico '${extractedValue}' ya está en uso.`;
