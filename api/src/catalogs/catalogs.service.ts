@@ -361,6 +361,15 @@ export class CatalogsService {
         code: true,
         name: true,
         studyPlan: true,
+        academic_disciplines: {
+          select: {
+            school_offered_levels: {
+              select: {
+                offeredEducationLevel: true,
+              },
+            },
+          },
+        },
       },
       orderBy: {
         name: 'asc',

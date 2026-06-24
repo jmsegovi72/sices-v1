@@ -149,7 +149,18 @@ export class CatalogsController {
   @Get(['educational-programs', 'catalog/educational-programs'])
   @UseInterceptors(TransformDataInterceptor)
   async getEducationalPrograms(): Promise<ApiResponse<any[]>> {
-    return await this.catalogsService.getEducationalPrograms();
+    const response = await this.catalogsService.getEducationalPrograms<any>();
+    if (response.success && Array.isArray(response.data)) {
+      response.data = response.data.map((item: any) => {
+        const level = item.academic_disciplines?.school_offered_levels?.offeredEducationLevel ?? null;
+        const { academic_disciplines, ...rest } = item;
+        return {
+          ...rest,
+          level,
+        };
+      });
+    }
+    return response;
   }
 
   @Get('school-years')
