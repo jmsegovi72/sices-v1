@@ -79,6 +79,25 @@ export class StudentsService {
       );
     }
 
+    // 🔹 2.b Verificar si la persona ya es un alumno activo
+    const activeStudent = await client.student.findFirst({
+      where: {
+        personId: data.personId,
+        student_status: {
+          isActive: true,
+        },
+      },
+      include: {
+        educational_programs: true,
+      },
+    });
+
+    if (activeStudent) {
+      throw new BadRequestException(
+        `La persona ya está registrada como alumno activo en el programa '${activeStudent.educational_programs.name}'.`,
+      );
+    }
+
     // 🔹 3. Asignar matrícula y correo (null si no vienen)
     const codeNumber = data.codeNumber ?? null;
     const institutionalMail = data.email ?? null;
@@ -136,6 +155,28 @@ export class StudentsService {
       where: { id: { in: personIds } },
       select: { id: true },
     });
+
+    // 🔹 2.b Verificar si alguna de las personas ya es un alumno activo
+    const activeStudents = await client.student.findMany({
+      where: {
+        personId: { in: personIds },
+        student_status: {
+          isActive: true,
+        },
+      },
+      include: {
+        educational_programs: true,
+      },
+    });
+
+    if (activeStudents.length > 0) {
+      const activeInfo = activeStudents
+        .map((s) => `Persona ID ${s.personId} en '${s.educational_programs.name}'`)
+        .join(', ');
+      throw new BadRequestException(
+        `No se puede realizar la inserción masiva porque ya existen alumnos activos: ${activeInfo}`,
+      );
+    }
 
     // 🔹 3. Mapear personId para acceso rápido
     const personSet = new Set(persons.map((p) => p.id));
