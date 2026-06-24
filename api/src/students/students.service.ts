@@ -120,14 +120,25 @@ export class StudentsService {
     );
 
     // 🔹 5. Crear registro
-    return await httpRequestCreate<typeof dtoToSave, T>({
+    const result = await httpRequestCreate<typeof dtoToSave, any>({
       serviceName: StudentsService.name,
       methodName: 'create',
       model: client.student,
       logger: this.logger,
       data: dtoToSave,
-      returnData,
+      returnData: true,
     });
+
+    if (result.success && returnData) {
+      const viewData = await client.viewStudent.findUnique({
+        where: { id: result.data.id },
+      });
+      result.data = viewData;
+    } else if (!returnData) {
+      delete result.data;
+    }
+
+    return result as unknown as ApiResponse<T>;
   }
   /* ============================================================
  🆕 CREATE MANY STUDENTS (SICES V3)
@@ -482,15 +493,26 @@ Listado de alumnos con filtros dinámicos.
       'Datos finales para actualización de alumno',
     );
 
-    return await httpRequestUpdate<typeof dataToUpdate, R>({
+    const result = await httpRequestUpdate<typeof dataToUpdate, any>({
       serviceName: StudentsService.name,
       model: client.student,
       logger: this.logger,
       idValue,
       data: dataToUpdate,
-      returnData,
+      returnData: true,
       idFieldName,
     });
+
+    if (result.success && returnData) {
+      const viewData = await client.viewStudent.findUnique({
+        where: { id: Number(idValue) },
+      });
+      result.data = viewData;
+    } else if (!returnData) {
+      delete result.data;
+    }
+
+    return result as unknown as ApiResponse<R>;
   }
   /* ============================================================
  📧 UPDATE BATCH STUDENT EMAILS (SICES V3)
