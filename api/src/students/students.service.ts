@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { Prisma, ViewPerson } from '@prisma/client';
 import { plainToClass } from 'class-transformer';
 import { PinoLogger } from 'nestjs-pino';
@@ -386,10 +386,6 @@ Listado de alumnos con filtros dinámicos.
     // 🔹 Resolver paginación
     const pagination = resolvePagination(filters);
 
-    // 🔹 Convertir isActive boolean a number (1 o 0) para coincidir con el tipo Int de ViewStudent en Prisma/DB
-    if (filters.isActive !== undefined) {
-      (filters as any).isActive = filters.isActive ? 1 : 0;
-    }
 
     const whereCondition = buildWhereMany<
       Prisma.ViewStudentWhereInput,
@@ -467,6 +463,62 @@ Listado de alumnos con filtros dinámicos.
   ): Promise<ApiResponse<R>> {
     const { idValue, data, client, returnData, idFieldName, userId } =
       extractUpdateParams(params, this.prisma);
+
+    // 1. Obtener registro actual del alumno e incluir su estatus
+    const currentStudent = await client.student.findUnique({
+      where: { id: Number(idValue) },
+      include: { student_status: true },
+    });
+
+    if (!currentStudent) {
+      throw new NotFoundException(`El alumno con ID ${idValue} no existe.`);
+    }
+
+    // 🔹 VALIDACIÓN 1: Restringir edición a alumnos inactivos (a menos que se esté reactivando)
+    if (!currentStudent.student_status.isActive) {
+      let isReactivating = false;
+      if (data.statusId !== undefined && data.statusId !== currentStudent.statusId) {
+        const newStatus = await client.studentStatus.findUnique({
+          where: { id: data.statusId },
+        });
+        if (newStatus && newStatus.isActive) {
+          isReactivating = true;
+        }
+      }
+
+      if (!isReactivating) {
+        throw new BadRequestException(
+          `No se puede modificar la información de un alumno que se encuentra inactivo (estatus actual: '${currentStudent.student_status.description}').`
+        );
+      }
+    }
+
+    // 🔹 VALIDACIÓN 2: Validar si se está intentando cambiar programa o generación
+    const isChangingProgram =
+      data.educationalProgramId !== undefined &&
+      data.educationalProgramId !== null;
+
+    const isChangingGeneration =
+      data.generationId !== undefined &&
+      data.generationId !== null;
+
+    if (isChangingProgram || isChangingGeneration) {
+      const realChangeProgram =
+        isChangingProgram &&
+        data.educationalProgramId !== currentStudent.educationalProgramId;
+
+      const realChangeGeneration =
+        isChangingGeneration &&
+        data.generationId !== currentStudent.generationId;
+
+      if (realChangeProgram || realChangeGeneration) {
+        if (currentStudent.student_status.statusKey !== 'NI') {
+          throw new BadRequestException(
+            `No se permite cambiar el programa educativo o la generación de un alumno que ya no está en estatus 'Nuevo Ingreso' (estatus actual: '${currentStudent.student_status.description}'). Si el alumno va a cursar un nuevo programa, debe darse de alta un nuevo registro.`
+          );
+        }
+      }
+    }
 
     // 🔹 1. Extraer updatedBy para manejarlo manualmente
     const { updatedBy, ...dataToTransform } = data as unknown as Record<

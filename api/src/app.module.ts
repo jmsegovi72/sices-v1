@@ -16,6 +16,7 @@ import { PrismaModule } from './prisma/prisma.module';
 import { SchoolsOfOriginModule } from './schools-of-origin/schools-of-origin.module';
 import { StaffModule } from './staff/staff.module';
 import { StudentAcademicBackgroundsModule } from './student-academic-backgrounds/student-academic-backgrounds.module';
+import { StudentDocumentsModule } from './student-documents/student-documents.module';
 import { StudentWithdrawalsModule } from './student-withdrawals/student-withdrawals.module';
 import { StudentsModule } from './students/students.module';
 import { TeachingLoadModule } from './teaching-load/teaching-load.module';
@@ -64,6 +65,7 @@ import { ZipCodesModule } from './zip-codes/zip-codes.module';
     ZipCodesModule,
     AddressesModule,
     StudentsModule,
+    StudentDocumentsModule,
     SchoolsOfOriginModule,
     DemographicsModule,
     EmergencyContactsModule,
