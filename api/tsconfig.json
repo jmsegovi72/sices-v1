@@ -44,7 +44,8 @@
       "@/teaching-load/*": ["src/teaching-load/*"],
       "@/teaching-load-schedule/*": ["src/teaching-load-schedule/*"],
       "@/grades/*": ["src/grades/*"],
-      "@/student-withdrawals/*": ["src/student-withdrawals/*"]
+      "@/student-withdrawals/*": ["src/student-withdrawals/*"],
+      "@/student-documents/*": ["src/student-documents/*"]
     }
   },
   "exclude": [
