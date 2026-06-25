@@ -1031,20 +1031,19 @@ model DocumentType {
 }
 
 model Document {
-  id             Int      @id @default(autoincrement()) @map("id") @db.UnsignedInt
-  personId       Int      @map("person_id") @db.UnsignedInt
-  studentId      Int?     @map("student_id") @db.UnsignedInt
-  staffId        Int?     @map("staff_id") @db.UnsignedInt
-  documentTypeId Int      @map("document_type_id") @db.UnsignedInt
-  deliveryDate   DateTime @map("delivery_date") @db.Date
-  filePath       String?  @map("file_path") @db.VarChar(500)
-  mimeType       String?  @map("mime_type") @db.VarChar(100)
-  notes          String?  @map("notes") @db.Text
-  createdBy      Int      @map("created_by") @db.UnsignedInt
-  updatedBy      Int      @map("updated_by") @db.UnsignedInt
-  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamp(0)
-  updatedAt      DateTime @default(now()) @map("updated_at") @db.Timestamp(0)
-
+  id                                Int          @id @default(autoincrement()) @map("id") @db.UnsignedInt
+  personId                          Int          @map("person_id") @db.UnsignedInt
+  studentId                         Int?         @map("student_id") @db.UnsignedInt
+  staffId                           Int?         @map("staff_id") @db.UnsignedInt
+  documentTypeId                    Int          @map("document_type_id") @db.UnsignedInt
+  deliveryDate                      DateTime     @map("delivery_date") @db.Date
+  filePath                          String?      @map("file_path") @db.VarChar(500)
+  mimeType                          String?      @map("mime_type") @db.VarChar(100)
+  notes                             String?      @map("notes") @db.Text
+  createdBy                         Int          @map("created_by") @db.UnsignedInt
+  updatedBy                         Int          @map("updated_by") @db.UnsignedInt
+  createdAt                         DateTime     @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt                         DateTime     @default(now()) @map("updated_at") @db.Timestamp(0)
   users_documents_created_byTousers User         @relation("documents_created_byTousers", fields: [createdBy], references: [id], map: "fk_documents_created_by")
   persons                           Person       @relation(fields: [personId], references: [id], map: "fk_documents_person_id")
   staff                             Staff?       @relation(fields: [staffId], references: [id], map: "fk_documents_staff_id")
@@ -1213,7 +1212,7 @@ view ViewStudentAcademicBackground {
 }
 
 view ViewStudent {
-  id                 Int      @unique @default(0) @db.UnsignedInt
+  id                 Int     @unique @default(0) @db.UnsignedInt
   personId           Int      @default(0) @db.UnsignedInt
   fullName           String?  @db.VarChar(97)
   firstName          String   @db.VarChar(45)
