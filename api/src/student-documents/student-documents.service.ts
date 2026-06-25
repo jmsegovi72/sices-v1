@@ -289,57 +289,6 @@ export class StudentDocumentsService {
   }
 
   /* ============================================================
-     🗑️ DELETE DOCUMENT
-     ------------------------------------------------------------
-     📌 Elimina el registro y remueve físicamente el archivo del disco.
-     ============================================================ */
-  async remove(id: number) {
-    this.logger.info({ documentId: id }, 'Iniciando eliminación de documento');
-
-    const doc = await this.prisma.studentDocument.findUnique({
-      where: { id },
-    });
-
-    if (!doc) {
-      throw new NotFoundException(
-        qwikMessageResponse({
-          success: false,
-          message: `El documento con ID ${id} no existe.`,
-          errorCode: 'NOT_FOUND',
-        }),
-      );
-    }
-
-    // 1. Borrado físico del archivo en el servidor
-    if (doc.filePath) {
-      const absolutePath = join(process.cwd(), doc.filePath);
-      if (fs.existsSync(absolutePath)) {
-        try {
-          fs.unlinkSync(absolutePath);
-          this.logger.info({ path: absolutePath }, 'Archivo físico eliminado correctamente');
-        } catch (error) {
-          this.logger.warn(
-            { path: absolutePath, error: error.message },
-            'No se pudo eliminar el archivo físico durante la baja del documento',
-          );
-        }
-      }
-    }
-
-    // 2. Borrado del registro en la base de datos
-    await this.prisma.studentDocument.delete({
-      where: { id },
-    });
-
-    this.logger.info({ documentId: id }, 'Documento eliminado exitosamente de la base de datos');
-
-    return qwikMessageResponse({
-      success: true,
-      message: 'Documento y archivo físico eliminados correctamente.',
-    });
-  }
-
-  /* ============================================================
      🔒 STREAM FILE SECURELY
      ------------------------------------------------------------
      📌 Transmite el archivo PDF de forma segura bajo autorización.

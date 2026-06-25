@@ -107,19 +107,4 @@ export class StudentDocumentsController {
   ) {
     return await this.studentDocumentsService.updateMetadata(id, dto, user);
   }
-
-  /* ============================================================
-     🗑️ DELETE: REMOVE DOCUMENT
-     ------------------------------------------------------------
-     📌 Elimina registro de BD y remueve el archivo físico de disco.
-     ============================================================ */
-  @Delete(':id')
-  @Auth(ACCESS_LEVEL.dbDataWriter)
-  @AuthModulePermission(SystemModules.STUDENTS, 'delete')
-  @HttpCode(HttpStatus.OK)
-  async remove(
-    @Param('id', ParsePositiveIntPipe) id: number,
-  ) {
-    return await this.studentDocumentsService.remove(id);
-  }
 }
