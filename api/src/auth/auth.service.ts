@@ -472,6 +472,7 @@ export class AuthService {
       [SystemModules.ZIP_CODES]: 'zipCodes',
       [SystemModules.ADDRESSES]: 'addresses',
       [SystemModules.STUDENTS]: 'students',
+      [SystemModules.DOCUMENTS]: 'documents',
       [SystemModules.SCHOOLS_OF_ORIGIN]: 'schoolsOfOrigin',
       [SystemModules.DEMOGRAPHICS]: 'demographics',
       [SystemModules.EMERGENCY_CONTACTS]: 'emergencyContacts',

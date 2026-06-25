@@ -140,6 +140,7 @@ model Person {
   photoUrl                        String?           @map("photo_url") @db.VarChar(255)
   addresses                       Address?
   demographics                    Demographic?
+  documents                       Document[]
   emergency_contacts              EmergencyContact?
   users_persons_created_byTousers User              @relation("persons_created_byTousers", fields: [createdBy], references: [id], map: "fk_person_created_by")
   municipalities                  Municipality?     @relation(fields: [municipalityId], references: [id], onDelete: Restrict, map: "fk_person_municipality")
@@ -241,9 +242,9 @@ model Student {
   updatedBy                        Int                        @map("updated_by") @db.UnsignedInt
   createdAt                        DateTime                   @default(now()) @map("created_at") @db.Timestamp(0)
   updatedAt                        DateTime                   @default(now()) @map("updated_at") @db.Timestamp(0)
+  documents                        Document[]
   enrollments                      Enrollment[]
   student_academic_backgrounds     StudentAcademicBackground?
-  student_documents                StudentDocument[]
   users_students_created_byTousers User                       @relation("students_created_byTousers", fields: [createdBy], references: [id], map: "fk_students_created_by")
   educational_programs             EducationalProgram         @relation(fields: [educationalProgramId], references: [id], map: "fk_students_educational_program_id")
   student_generations              StudentGeneration          @relation(fields: [generationId], references: [id], map: "fk_students_generation_id")
@@ -293,6 +294,8 @@ model User {
   classes_classes_updated_byTousers                                           Class[]                     @relation("classes_updated_byTousers")
   demographics                                                                Demographic[]
   demographics_demographics_updated_byTousers                                 Demographic[]               @relation("demographics_updated_byTousers")
+  documents_documents_created_byTousers                                       Document[]                  @relation("documents_created_byTousers")
+  documents_documents_updated_byTousers                                       Document[]                  @relation("documents_updated_byTousers")
   emergency_contacts_emergency_contacts_created_byTousers                     EmergencyContact[]          @relation("emergency_contacts_created_byTousers")
   emergency_contacts_emergency_contacts_updated_byTousers                     EmergencyContact[]          @relation("emergency_contacts_updated_byTousers")
   enrollments_enrollments_created_byTousers                                   Enrollment[]                @relation("enrollments_created_byTousers")
@@ -313,8 +316,6 @@ model User {
   staff_teaching_profile_staff_teaching_profile_updated_byTousers             StaffTeachingProfile[]      @relation("staff_teaching_profile_updated_byTousers")
   student_academic_backgrounds_student_academic_backgrounds_created_byTousers StudentAcademicBackground[] @relation("student_academic_backgrounds_created_byTousers")
   student_academic_backgrounds_student_academic_backgrounds_updated_byTousers StudentAcademicBackground[] @relation("student_academic_backgrounds_updated_byTousers")
-  student_documents_student_documents_created_byTousers                       StudentDocument[]           @relation("student_documents_created_byTousers")
-  student_documents_student_documents_updated_byTousers                       StudentDocument[]           @relation("student_documents_updated_byTousers")
   student_withdrawals_student_withdrawals_created_byTousers                   StudentWithdrawal[]         @relation("student_withdrawals_created_byTousers")
   student_withdrawals_student_withdrawals_updated_byTousers                   StudentWithdrawal[]         @relation("student_withdrawals_updated_byTousers")
   students_students_created_byTousers                                         Student[]                   @relation("students_created_byTousers")
@@ -703,6 +704,7 @@ model Staff {
   updatedBy                     Int                   @map("updated_by") @db.UnsignedInt
   createdAt                     DateTime              @default(now()) @map("created_at") @db.Timestamp(6)
   updatedAt                     DateTime              @default(now()) @map("updated_at") @db.Timestamp(6)
+  documents                     Document[]
   categories                    Category              @relation(fields: [categoryId], references: [id], map: "fk_staff_category")
   users_staff_created_byTousers User                  @relation("staff_created_byTousers", fields: [createdBy], references: [id], map: "fk_staff_created_by")
   employment_duration           EmploymentDuration    @relation(fields: [employmentDurationId], references: [id], map: "fk_staff_employment_duration")
@@ -1019,36 +1021,44 @@ model StaffStatus {
 }
 
 model DocumentType {
-  id                Int               @id @default(autoincrement()) @map("id") @db.UnsignedInt
-  name              String            @unique(map: "name") @map("name") @db.VarChar(100)
-  createdAt         DateTime          @default(now()) @map("created_at") @db.Timestamp(0)
-  updatedAt         DateTime          @default(now()) @map("updated_at") @db.Timestamp(0)
-  student_documents StudentDocument[]
+  id        Int        @id @default(autoincrement()) @map("id") @db.UnsignedInt
+  name      String     @unique(map: "name") @map("name") @db.VarChar(100)
+  createdAt DateTime   @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt DateTime   @default(now()) @map("updated_at") @db.Timestamp(0)
+  documents Document[]
 
   @@map("document_types")
 }
 
-model StudentDocument {
-  id                                        Int          @id @default(autoincrement()) @map("id") @db.UnsignedInt
-  studentId                                 Int          @map("student_id") @db.UnsignedInt
-  documentTypeId                            Int          @map("document_type_id") @db.UnsignedInt
-  deliveryDate                              DateTime     @map("delivery_date") @db.Date
-  filePath                                  String?      @map("file_path") @db.VarChar(500)
-  notes                                     String?      @map("notes") @db.Text
-  createdBy                                 Int          @map("created_by") @db.UnsignedInt
-  updatedBy                                 Int          @map("updated_by") @db.UnsignedInt
-  createdAt                                 DateTime     @default(now()) @map("created_at") @db.Timestamp(0)
-  updatedAt                                 DateTime     @default(now()) @map("updated_at") @db.Timestamp(0)
-  users_student_documents_created_byTousers User         @relation("student_documents_created_byTousers", fields: [createdBy], references: [id], map: "fk_student_documents_created_by")
-  document_types                            DocumentType @relation(fields: [documentTypeId], references: [id], map: "fk_student_documents_document_type_id")
-  students                                  Student      @relation(fields: [studentId], references: [id], map: "fk_student_documents_student_id")
-  users_student_documents_updated_byTousers User         @relation("student_documents_updated_byTousers", fields: [updatedBy], references: [id], map: "fk_student_documents_updated_by")
+model Document {
+  id             Int      @id @default(autoincrement()) @map("id") @db.UnsignedInt
+  personId       Int      @map("person_id") @db.UnsignedInt
+  studentId      Int?     @map("student_id") @db.UnsignedInt
+  staffId        Int?     @map("staff_id") @db.UnsignedInt
+  documentTypeId Int      @map("document_type_id") @db.UnsignedInt
+  deliveryDate   DateTime @map("delivery_date") @db.Date
+  filePath       String?  @map("file_path") @db.VarChar(500)
+  mimeType       String?  @map("mime_type") @db.VarChar(100)
+  notes          String?  @map("notes") @db.Text
+  createdBy      Int      @map("created_by") @db.UnsignedInt
+  updatedBy      Int      @map("updated_by") @db.UnsignedInt
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt      DateTime @default(now()) @map("updated_at") @db.Timestamp(0)
 
-  @@index([createdBy], map: "fk_student_documents_created_by_idx")
-  @@index([documentTypeId], map: "fk_student_documents_document_type_id_idx")
-  @@index([studentId], map: "fk_student_documents_student_id_idx")
-  @@index([updatedBy], map: "fk_student_documents_updated_by_idx")
-  @@map("student_documents")
+  users_documents_created_byTousers User         @relation("documents_created_byTousers", fields: [createdBy], references: [id], map: "fk_documents_created_by")
+  persons                           Person       @relation(fields: [personId], references: [id], map: "fk_documents_person_id")
+  staff                             Staff?       @relation(fields: [staffId], references: [id], map: "fk_documents_staff_id")
+  students                          Student?     @relation(fields: [studentId], references: [id], map: "fk_documents_student_id")
+  users_documents_updated_byTousers User         @relation("documents_updated_byTousers", fields: [updatedBy], references: [id], map: "fk_documents_updated_by")
+  document_types                    DocumentType @relation(fields: [documentTypeId], references: [id], map: "fk_student_documents_document_type_id")
+
+  @@index([createdBy], map: "fk_documents_created_by_idx")
+  @@index([documentTypeId], map: "fk_documents_document_type_id_idx")
+  @@index([personId], map: "fk_documents_person_id_idx")
+  @@index([staffId], map: "fk_documents_staff_id_idx")
+  @@index([studentId], map: "fk_documents_student_id_idx")
+  @@index([updatedBy], map: "fk_documents_updated_by_idx")
+  @@map("documents")
 }
 
 view ViewAddress {
@@ -1203,7 +1213,7 @@ view ViewStudentAcademicBackground {
 }
 
 view ViewStudent {
-  id                 Int     @unique @default(0) @db.UnsignedInt
+  id                 Int      @unique @default(0) @db.UnsignedInt
   personId           Int      @default(0) @db.UnsignedInt
   fullName           String?  @db.VarChar(97)
   firstName          String   @db.VarChar(45)
@@ -1574,21 +1584,26 @@ view ViewStudentWithdrawal {
   @@map("view_student_withdrawals")
 }
 
-view viewStudentDocument {
-  id             Int      @default(0) @db.UnsignedInt
+view viewDocument {
+  id             Int      @unique @default(0) @db.UnsignedInt
+  personName     String?  @db.VarChar(97)
+  personCurp     String   @db.Char(18)
   studentCode    String?  @db.VarChar(25)
-  studentName    String   @default("") @db.VarChar(97)
-  studentCurp    String   @db.Char(18)
+  staffId        Int?     @default(0) @db.UnsignedInt
+  staffTypeId    Int?     @db.TinyInt
   documentName   String   @db.VarChar(100)
   deliveryDate   DateTime @db.Date
   filePath       String?  @db.VarChar(500)
+  mimeType       String?  @db.VarChar(100)
   notes          String?  @db.Text
-  createdByName  String   @default("") @db.VarChar(97)
-  updatedByName  String   @default("") @db.VarChar(97)
-  studentId      Int      @db.UnsignedInt
+  createdByName  String?  @db.VarChar(97)
+  updatedByName  String?  @db.VarChar(97)
+  personId       Int      @db.UnsignedInt
+  studentId      Int?     @db.UnsignedInt
+  staffIdRef     Int?     @db.UnsignedInt
   documentTypeId Int      @db.UnsignedInt
 
-  @@map("view_student_documents")
+  @@map("view_documents")
 }
 
 enum zip_codes_zone_type {

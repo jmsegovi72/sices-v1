@@ -61,6 +61,10 @@ export const ModulePermissions: Record<
   [SystemModules.STUDENTS]: withGlobalAccess({
     [EnumUserType.DOCENTE]: ['read'],
   }),
+  [SystemModules.DOCUMENTS]: {
+    [EnumUserType.SUPER]: ['create', 'read', 'update', 'delete'],
+    [EnumUserType.CE]: ['create', 'read', 'update'],
+  },
   [SystemModules.SCHOOLS_OF_ORIGIN]: withGlobalAccess({}),
   [SystemModules.DEMOGRAPHICS]: withGlobalAccess({}),
   [SystemModules.EMERGENCY_CONTACTS]: withGlobalAccess({
