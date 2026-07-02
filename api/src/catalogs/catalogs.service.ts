@@ -870,4 +870,23 @@ export class CatalogsService {
       queryOptions,
     });
   }
+
+  async getDocumentTypes<T>(): Promise<ApiResponse<T[]>> {
+    const queryOptions: Prisma.DocumentTypeFindManyArgs = {
+      select: {
+        id: true,
+        name: true,
+      },
+      orderBy: {
+        name: 'asc',
+      },
+    };
+
+    return await httpRequestFindMany<T>({
+      serviceName: CatalogsService.name,
+      model: this.prisma.documentType,
+      logger: this.logger,
+      queryOptions,
+    });
+  }
 }

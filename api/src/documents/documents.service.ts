@@ -7,7 +7,7 @@ import {
 import { PrismaService } from '@/prisma/prisma.service';
 import { PinoLogger } from 'nestjs-pino';
 import { UploadsService } from '@/uploads/uploads.service';
-import { UploadDocumentDto, UpdateDocumentDto } from './dto';
+import { UploadDocumentDto, UpdateDocumentDto, UploadDocumentBulkDto } from './dto';
 import { qwikMessageResponse } from '@/common/helpers';
 import type { UserFromView } from '@/common/types';
 import slugify from 'slugify';
@@ -126,6 +126,15 @@ export class DocumentsService {
           }),
         );
       }
+      if (student.personId !== personId) {
+        throw new BadRequestException(
+          qwikMessageResponse({
+            success: false,
+            message: `El estudiante con ID ${studentId} no pertenece a la persona seleccionada (ID ${personId}).`,
+            errorCode: 'BAD_REQUEST',
+          }),
+        );
+      }
     }
 
     if (staffId) {
@@ -138,6 +147,15 @@ export class DocumentsService {
             success: false,
             message: `El registro de personal con ID ${staffId} no existe.`,
             errorCode: 'NOT_FOUND',
+          }),
+        );
+      }
+      if (staff.personId !== personId) {
+        throw new BadRequestException(
+          qwikMessageResponse({
+            success: false,
+            message: `El miembro de personal con ID ${staffId} no pertenece a la persona seleccionada (ID ${personId}).`,
+            errorCode: 'BAD_REQUEST',
           }),
         );
       }
@@ -377,6 +395,15 @@ export class DocumentsService {
           }),
         );
       }
+      if (student.personId !== doc.personId) {
+        throw new BadRequestException(
+          qwikMessageResponse({
+            success: false,
+            message: `El estudiante con ID ${dto.studentId} no pertenece a la persona asociada al documento (ID ${doc.personId}).`,
+            errorCode: 'BAD_REQUEST',
+          }),
+        );
+      }
     }
 
     if (dto.staffId) {
@@ -387,6 +414,15 @@ export class DocumentsService {
             success: false,
             message: `El registro de personal con ID ${dto.staffId} no existe.`,
             errorCode: 'NOT_FOUND',
+          }),
+        );
+      }
+      if (staff.personId !== doc.personId) {
+        throw new BadRequestException(
+          qwikMessageResponse({
+            success: false,
+            message: `El miembro de personal con ID ${dto.staffId} no pertenece a la persona asociada al documento (ID ${doc.personId}).`,
+            errorCode: 'BAD_REQUEST',
           }),
         );
       }
@@ -455,5 +491,286 @@ export class DocumentsService {
     });
 
     return new StreamableFile(fs.createReadStream(absolutePath));
+  }
+
+  /* ============================================================
+     📥 POST: BULK UPLOAD OR UPSERT DOCUMENTS
+     ------------------------------------------------------------
+     📌 Procesa de 1 a N documentos para una persona en una sola petición.
+     ============================================================ */
+  async uploadDocumentsBulk(
+    dto: UploadDocumentBulkDto,
+    files: any[],
+    currentUser: UserFromView,
+  ) {
+    const { personId, deliveryDate } = dto;
+
+    this.logger.info(
+      { personId, filesCount: files?.length, updatedBy: currentUser.id },
+      'Iniciando carga masiva (bulk) de documentos con metadata dinámica'
+    );
+
+    // 1. Validar si la persona existe y obtener su CURP
+    const person = await this.prisma.person.findUnique({
+      where: { id: personId },
+    });
+
+    if (!person) {
+      throw new NotFoundException(
+        qwikMessageResponse({
+          success: false,
+          message: `La persona con ID ${personId} no existe.`,
+          errorCode: 'NOT_FOUND',
+        }),
+      );
+    }
+
+    const curp = person.curp?.trim()?.toUpperCase();
+    if (!curp) {
+      throw new BadRequestException(
+        qwikMessageResponse({
+          success: false,
+          message: 'La persona seleccionada no cuenta con una CURP registrada en su expediente.',
+          errorCode: 'BAD_REQUEST',
+        }),
+      );
+    }
+
+    // Resolver fecha de entrega global
+    const globalDeliveryDate = deliveryDate ? new Date(deliveryDate) : new Date();
+
+    // 2. Reconstruir la lista de documentos a partir del body plano y los archivos
+    const itemsMap: Record<number, {
+      documentTypeId?: number;
+      studentId?: number;
+      staffId?: number;
+      notes?: string;
+      file?: any;
+    }> = {};
+
+    // Extraer campos metadatos del body
+    for (const [key, value] of Object.entries(dto)) {
+      const match = key.match(/^documents\[(\d+)\]\[(\w+)\]$/);
+      if (match) {
+        const index = parseInt(match[1], 10);
+        const field = match[2];
+
+        if (!itemsMap[index]) {
+          itemsMap[index] = {};
+        }
+
+        if (field === 'documentTypeId') {
+          itemsMap[index].documentTypeId = Number(value);
+        } else if (field === 'studentId') {
+          itemsMap[index].studentId = value !== 'null' && value !== '' && value !== undefined && value !== null ? Number(value) : undefined;
+        } else if (field === 'staffId') {
+          itemsMap[index].staffId = value !== 'null' && value !== '' && value !== undefined && value !== null ? Number(value) : undefined;
+        } else if (field === 'notes') {
+          itemsMap[index].notes = String(value);
+        }
+      }
+    }
+
+    // Extraer archivos físicos correspondientes
+    if (files && Array.isArray(files)) {
+      for (const file of files) {
+        const match = file.fieldname.match(/^documents\[(\d+)\]\[file\]$/);
+        if (match) {
+          const index = parseInt(match[1], 10);
+          if (!itemsMap[index]) {
+            itemsMap[index] = {};
+          }
+          itemsMap[index].file = file;
+        }
+      }
+    }
+
+    const items = Object.entries(itemsMap).map(([indexStr, item]) => {
+      return {
+        index: parseInt(indexStr, 10),
+        documentTypeId: item.documentTypeId,
+        studentId: item.studentId,
+        staffId: item.staffId,
+        notes: item.notes,
+        file: item.file,
+      };
+    }).sort((a, b) => a.index - b.index);
+
+    const itemsResults: any[] = [];
+    let createdCount = 0;
+    let replacedCount = 0;
+    let failedCount = 0;
+
+    // 3. Procesar cada item secuencialmente
+    for (const item of items) {
+      const { index, documentTypeId, studentId, staffId, notes, file } = item;
+
+      try {
+        // Validar campos del item
+        if (!documentTypeId) {
+          throw new Error('El ID del tipo de documento es obligatorio.');
+        }
+
+        if (!file) {
+          throw new Error('No se proporcionó ningún archivo para este elemento.');
+        }
+
+        // Regla: No vincular a estudiante y staff al mismo tiempo
+        if (studentId && staffId) {
+          throw new Error('No se permite vincular el documento a un estudiante y a personal simultáneamente.');
+        }
+
+        // Regla: Validar studentId si existe
+        if (studentId) {
+          const student = await this.prisma.student.findUnique({
+            where: { id: studentId },
+          });
+          if (!student) {
+            throw new Error(`El registro de estudiante con ID ${studentId} no existe.`);
+          }
+          if (student.personId !== personId) {
+            throw new Error(`El estudiante con ID ${studentId} no pertenece a la persona seleccionada (ID ${personId}).`);
+          }
+        }
+
+        // Regla: Validar staffId si existe
+        if (staffId) {
+          const staff = await this.prisma.staff.findUnique({
+            where: { id: staffId },
+          });
+          if (!staff) {
+            throw new Error(`El registro de personal con ID ${staffId} no existe.`);
+          }
+          if (staff.personId !== personId) {
+            throw new Error(`El miembro de personal con ID ${staffId} no pertenece a la persona seleccionada (ID ${personId}).`);
+          }
+        }
+
+        const extension = ALLOWED_MIME_TYPES[file.mimetype];
+        if (!extension) {
+          throw new Error(`El tipo de archivo (${file.mimetype}) no está permitido.`);
+        }
+
+        const docType = await this.prisma.documentType.findUnique({
+          where: { id: documentTypeId },
+        });
+
+        if (!docType) {
+          throw new Error(`El tipo de documento con ID ${documentTypeId} no existe en el catálogo.`);
+        }
+
+        // Guardar archivo físico
+        const docTypeSlug = slugify(docType.name, { lower: true, strict: true });
+        const filename = `${curp}-${docTypeSlug}${extension}`;
+
+        const relativePath = await this.uploadsService.saveFile(
+          file,
+          'documents',
+          filename,
+          Object.keys(ALLOWED_MIME_TYPES),
+          20,
+        );
+
+        // Buscar si ya existe para Upsert
+        const existingDoc = await this.prisma.document.findFirst({
+          where: {
+            personId,
+            documentTypeId,
+          },
+        });
+
+        let savedDocument: any;
+        let itemStatus: 'created' | 'replaced' = 'created';
+
+        if (existingDoc) {
+          // Reemplazo: Eliminar archivo anterior si la ruta física es distinta
+          if (existingDoc.filePath && existingDoc.filePath !== relativePath) {
+            const oldPhysicalPath = join(process.cwd(), existingDoc.filePath);
+            if (fs.existsSync(oldPhysicalPath)) {
+              try {
+                fs.unlinkSync(oldPhysicalPath);
+              } catch (unlinkError: any) {
+                this.logger.warn(
+                  { path: oldPhysicalPath, error: unlinkError.message },
+                  'Carga masiva: No se pudo eliminar el archivo físico anterior durante la sobreescritura',
+                );
+              }
+            }
+          }
+
+          // Actualizar registro
+          savedDocument = await this.prisma.document.update({
+            where: { id: existingDoc.id },
+            data: {
+              studentId: studentId ?? null,
+              staffId: staffId ?? null,
+              filePath: relativePath,
+              mimeType: file.mimetype,
+              deliveryDate: globalDeliveryDate,
+              notes: notes ?? null,
+              updatedBy: currentUser.id,
+            },
+          });
+          itemStatus = 'replaced';
+          replacedCount++;
+        } else {
+          // Crear nuevo registro
+          savedDocument = await this.prisma.document.create({
+            data: {
+              personId,
+              studentId: studentId ?? null,
+              staffId: staffId ?? null,
+              documentTypeId,
+              filePath: relativePath,
+              mimeType: file.mimetype,
+              deliveryDate: globalDeliveryDate,
+              notes: notes ?? null,
+              createdBy: currentUser.id,
+              updatedBy: currentUser.id,
+            },
+          });
+          createdCount++;
+        }
+
+        itemsResults.push({
+          index,
+          documentTypeId,
+          status: itemStatus,
+          message: itemStatus === 'replaced'
+            ? 'Documento reemplazado correctamente.'
+            : 'Documento cargado correctamente.',
+          data: {
+            id: savedDocument.id,
+            filePath: savedDocument.filePath,
+          },
+        });
+      } catch (itemError: any) {
+        failedCount++;
+        itemsResults.push({
+          index,
+          documentTypeId: documentTypeId ?? null,
+          status: 'error',
+          message: itemError.message || 'Error desconocido al procesar este documento.',
+        });
+      }
+    }
+
+    const hasIncidents = failedCount > 0;
+    const finalMessage = hasIncidents
+      ? 'Carga masiva procesada con incidencias.'
+      : 'Carga masiva procesada correctamente.';
+
+    return qwikMessageResponse({
+      success: true,
+      message: finalMessage,
+      data: {
+        total: items.length,
+        processed: createdCount + replacedCount,
+        created: createdCount,
+        replaced: replacedCount,
+        failed: failedCount,
+        items: itemsResults,
+      },
+    });
   }
 }

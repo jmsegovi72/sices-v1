@@ -307,4 +307,10 @@ export class CatalogsController {
   ): Promise<ApiResponse<any[]>> {
     return await this.catalogsService.getTeachers(query);
   }
+
+  @Get(['document-types', 'catalog/document-types'])
+  @UseInterceptors(TransformDataInterceptor)
+  async getDocumentTypes(): Promise<ApiResponse<any[]>> {
+    return await this.catalogsService.getDocumentTypes();
+  }
 }

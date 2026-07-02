@@ -9,14 +9,17 @@ import {
   Post,
   Res,
   UploadedFile,
+  UploadedFiles,
   UseInterceptors,
+  UsePipes,
+  ValidationPipe,
 } from '@nestjs/common';
-import { FileInterceptor } from '@nestjs/platform-express';
+import { FileInterceptor, AnyFilesInterceptor } from '@nestjs/platform-express';
 import { Auth, AuthModulePermission, GetUser } from '@/auth/decorators';
 import { ACCESS_LEVEL, SystemModules } from '@/common/constants';
 import { ParsePositiveIntPipe } from '@/common/pipes';
 import type { UserFromView } from '@/common/types';
-import { UploadDocumentDto, UpdateDocumentDto } from './dto';
+import { UploadDocumentDto, UpdateDocumentDto, UploadDocumentBulkDto } from './dto';
 import { DocumentsService } from './documents.service';
 import type { Response } from 'express';
 
@@ -42,6 +45,25 @@ export class DocumentsController {
     @GetUser() user: UserFromView,
   ) {
     return await this.documentsService.uploadDocument(dto, file, user);
+  }
+
+  /* ============================================================
+     📥 POST: BULK UPLOAD OR UPSERT DOCUMENTS
+     ------------------------------------------------------------
+     📌 Carga masiva de documentos en una sola operación.
+     ============================================================ */
+  @Post('bulk')
+  @Auth(ACCESS_LEVEL.dbDataWriter)
+  @AuthModulePermission(SystemModules.DOCUMENTS, 'update')
+  @UseInterceptors(AnyFilesInterceptor())
+  @UsePipes(new ValidationPipe({ whitelist: false, forbidNonWhitelisted: false, transform: true }))
+  @HttpCode(HttpStatus.OK)
+  async uploadDocumentsBulk(
+    @UploadedFiles() files: any[],
+    @Body() dto: UploadDocumentBulkDto,
+    @GetUser() user: UserFromView,
+  ) {
+    return await this.documentsService.uploadDocumentsBulk(dto, files, user);
   }
 
   /* ============================================================
